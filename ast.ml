@@ -1,9 +1,7 @@
 (* The type of the abstract syntax tree (AST). *)
-type doc =
-  | Head of head_expr
-  | Body of expr list
-  | Foot
-  | Config
+type section =
+  head_expr * expr list (* Foot | Config*)
+  (* need to define foot and config types *)
 
 and head_expr =
   | Title of string option
