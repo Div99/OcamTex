@@ -16,7 +16,7 @@ and margins = int
 and spacing = int
 
 and expr =
-  | Cmd of cmd * style option
+  | Cmd of cmd * style option * expr list
   | Var of string
   | Math of string
   | Text of string
