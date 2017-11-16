@@ -1,2 +1,3 @@
 # 3110-Final
-OCamTex
+OCamTex - Creating a more inutitive Tex language and raising the current standards.
+          
