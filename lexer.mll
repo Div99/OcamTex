@@ -117,7 +117,7 @@ let num = ['0'-'9']
 let alpha_num = (alpha | num)
 let ident = alpha (alpha_num | '_')*
 
-rule token = parse
+rule  = parse
   | "##" { pragma lexbuf }
 
   | '"' { begin_mode T lexbuf }
