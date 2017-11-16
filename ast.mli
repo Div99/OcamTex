@@ -1,20 +1,19 @@
-(* The type of the abstract syntax tree (AST). *)
-type doc = head_expr option * format * expr list
+(* The type of the entire document *)
+type doc = head_expr list * expr list
 
-and head_expr = title option * author option * metadata option
+(* The type of the document header *)
+and head_expr =
+  | Title of string option
+  | Author of string option
+  | Margins of float
+  | Linespace of space
+  | Indent of float
+  | Font of string * int
 
-and title = string
+(* type for determining spacing between lines*)
+and space = Single | SingleHalf | Double
 
-and author = string
-
-and metadata = string
-
-and format = margins * spacing
-
-and margins = int
-
-and spacing = int
-
+(* Expressions making up the document *)
 and expr =
   | Cmd of cmd * style option * expr list
   | Var of string
@@ -22,6 +21,7 @@ and expr =
   | Text of string
   | Comment of string
 
+(* Commands that the user can use *)
 and cmd =
   | List of expr list
   | Table of expr list list
@@ -29,6 +29,11 @@ and cmd =
   | InlineEq of expr
   | ListItem of expr
   | Matrix of expr list list
-  | Image of expr
+  | Image of string
+  | Section of string
+  | Subsection of string
+  | Subsubsection of string
+  | Newpage
 
-and style = string
+(* The style of a command *)
+and style = string list
