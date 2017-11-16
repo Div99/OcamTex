@@ -10,7 +10,7 @@ and head_expr =
   | Indent of float
   | Font of string * int
 
-(* type for determining spacing between lines*)
+(* The type for determining spacing between lines*)
 and space = Single | SingleHalf | Double
 
 (* Expressions making up the document *)
