@@ -10,7 +10,6 @@
     | C
     | M
     | T
-    | V of string option
 
   type loc = Lexing.position * Lexing.position
 
@@ -28,48 +27,39 @@
 (* Helper functions for lexing strings *)
 (******************************************************************)
 
+  let st = ref []
 
-  let get_stack =
-    let mode = ref [] in
-    (* get stack is for use in [lex_error] *)
-    begin fun () -> !mode end,
+  let get_stack = !st
 
   let get_mode =
-    fun () ->
-      match !mode with
+      match !st with
         | (m,_)::_ -> m
         | [] -> C
 
-  let begin_mode =
-    fun m lexbuf ->
+  let begin_mode m lexbuf =
       mode := (m , loc lexbuf) :: !mode;
       match m with
-        | C -> CODE_BEGIN
+        | C -> COMMENT_BEGIN
         | M -> MATH_BEGIN
         | T -> TEXT_BEGIN
-        | V apply -> VERB_BEGIN apply
 
-  let end_mode =
-    begin fun lexbuf ->
+  let end_mode m lexbuf =
       match !mode with
         | (m,_)::rem ->
             mode := rem;
             begin match m with
-              | C -> CODE_END
+              | C -> COMMENT_END
               | M -> MATH_END
               | T -> TEXT_END
-              | V _ -> VERB_END
             end
         | [] -> lex_error lexbuf !mode "mismatched mode delimiter"
 
-  let reset_mode =
-    begin fun () ->
+  let reset_mode () =
       mode := []
 
-  let top_level =
-    begin fun () ->
+  let top_level () =
       !mode = []
-
+    end
 
   (* should be defined inside the tuple, but we're facing the value restriction
       here, and it so happens that [lex_error] must have arbitrary return type,
