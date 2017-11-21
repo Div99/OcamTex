@@ -37,7 +37,7 @@
         | [] -> C
 
   let begin_mode m lexbuf =
-      mode := (m , loc lexbuf) :: !mode;
+      st := (m , loc lexbuf) :: !st;
       match m with
         | C -> COMMENT_BEGIN
         | M -> MATH_BEGIN
@@ -47,19 +47,18 @@
       match !mode with
         | (m,_)::rem ->
             mode := rem;
-            begin match m with
+            ( match m with
               | C -> COMMENT_END
               | M -> MATH_END
-              | T -> TEXT_END
-            end
-        | [] -> lex_error lexbuf !mode "mismatched mode delimiter"
+              | T -> TEXT_END )
+        | [] -> lex_error lexbuf !mode "mismatched delimiters"
 
-  let reset_mode () =
+  let reset_st () =
       mode := []
 
   let top_level () =
       !mode = []
-    end
+
 
   (* should be defined inside the tuple, but we're facing the value restriction
       here, and it so happens that [lex_error] must have arbitrary return type,
