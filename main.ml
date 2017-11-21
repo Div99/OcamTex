@@ -9,4 +9,4 @@ let convert_file str =
 
 let output_file = convert_file "test.otex"
 
-let _ = print_string ("Converted to " ^ output_file)
+let _ = print_string ("Converted to " ^ output_file ^ "\n")

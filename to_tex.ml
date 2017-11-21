@@ -16,7 +16,9 @@ let write_string_to_file filename str =
   let chan = open_out filename in
   output_string chan str; close_out chan
 
-let write_to_file doc = let output_str = match doc with
-  | (_, body) -> body_to_tex body in
+let write_to_tex doc = let output_str = match doc with
+  | (_, body) -> "\\documentclass{article}\n\\begin{document}\n" 
+    ^ body_to_tex body
+    ^ "\\end{document}" in
   write_string_to_file "output.tex" output_str;
   "output.tex"
