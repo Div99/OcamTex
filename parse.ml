@@ -34,7 +34,7 @@ let string_of_file filename =
 let parse_file filename = 
   let input_string = string_of_file filename in
   let lexbuf = from_string input_string in
-  ([], [])
+  ([], [Ast.Text "Hiiii"])
 (*   
   try Parser.parse_expression Lexer.token lexbuf
   with
