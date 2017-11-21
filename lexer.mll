@@ -82,19 +82,19 @@ let char_for_backslash = function
 
   let start_comment () =
     incr comment_nests;
-    Buffer.add_string comment_buf "(*"
+    Buffer.add_string comment_buf "/*"
 
   (* Close the current comment. If we are still in a comment, raise Exit.
      Else, return a COMMENT token containing the whole comment. *)
   let end_comment () =
     decr comment_nests;
-    Buffer.add_string comment_buf "*)";
+    Buffer.add_string comment_buf "*/";
     if !comment_nests >= 1 then raise Exit;
     let s = Buffer.contents comment_buf in
     Buffer.reset comment_buf;
     COMMENT s
 
-  let pragma_return lexbuf =
+  let token_return lexbuf =
     newline lexbuf;
     STRING "\n" (* to keep the line count correct *)
 
@@ -122,10 +122,9 @@ rule token = parse
   | blank+ { token lexbuf }
   | '"' { begin_mode T lexbuf }
   | '$' { begin_mode M lexbuf }
-  | '{' { begin_mode C lexbuf }
+  | '' { begin_mode C lexbuf }
   | '}' { end_mode lexbuf }
   | '\n'  { new_line lexbuf; token lexbuf }
-
   | "\\\"" { STRING "\"" }
   | "\\\\" { STRING "\\" }
   | "\\r" { STRING "\\r" }
@@ -136,7 +135,7 @@ rule token = parse
   | '\\' digit [^'0'-'9']
       { lex_error lexbuf "invalid escaping in code mode" }
 
-  | "(*" { start_comment (); comment lexbuf }
+  | "//" { start_comment (); comment lexbuf }
   | '(' { STRING "(" }
   | '#' { STRING "#" }
 
@@ -145,25 +144,9 @@ rule token = parse
       { if top_level () then EOF else
           lex_error lexbuf "unexpected end of file in code mode" }
 
-and pragma = parse
-  | "plugin" { pragma_plugin lexbuf; pragma_return lexbuf }
-  | "verbatim" { pragma_verbatim lexbuf; pragma_return lexbuf }
-  | _ { lex_error lexbuf "syntax error in pragma" }
-
-and pragma_plugin = parse
-  | space+ (ident as name) space* '\n'
-      { Plugin_private.load_plugin name }
-  | _ { lex_error lexbuf "syntax error in pragma plugin" }
-
-and pragma_verbatim = parse
-  | space* '\'' (_ as delim) '\'' space* '=' space*
-    ((ident ('.' ident)*) as ident) space* '\n'
-      { add_verb_delim lexbuf delim ident }
-  | _ { lex_error lexbuf "syntax error in pragma verbatim" }
-
 and comment = parse
-  | "*)" { try end_comment () with Exit -> comment lexbuf }
-  | "(*" { start_comment (); comment lexbuf }
+  | "*/" { try end_comment () with Exit -> comment lexbuf }
+  | "/*" { start_comment (); comment lexbuf }
   | '\n' { newline lexbuf; Buffer.add_char comment_buf '\n'; comment lexbuf }
   | "\\\"" { Buffer.add_char comment_buf '"'; comment lexbuf }
   | (_ as c) { Buffer.add_char comment_buf c; comment lexbuf }
@@ -236,32 +219,10 @@ and text = parse
       { STRING(lexeme lexbuf) }
   | eof { lex_error lexbuf "unexpected end of file in text mode" }
 
-and verb = parse
-  | '>' { end_mode lexbuf }
-  | '"' { begin_mode T lexbuf }
-  | '$' { begin_mode M lexbuf }
-  | '{' { begin_mode C lexbuf }
-  | '<' { verb_item '>' lexbuf }
-  | (_ as c) { verb_item c lexbuf }
-  | eof { lex_error lexbuf "unexpected end of file in verbatim mode" }
-
-and verb_item delim = parse
-  | (_ as c)
-      { if c = delim then begin
-          let s = Buffer.contents verb_buf in
-          Buffer.reset verb_buf;
-          VERB_ITEM(delim, s)
-        end else begin
-          Buffer.add_char verb_buf c;
-          verb_item delim lexbuf
-        end }
-  | eof { lex_error lexbuf "unexpected end of file in verbatim mode" }
-
 {
   let token lexbuf =
     match get_mode () with
-      | C -> code lexbuf
+      | C -> comment lexbuf
       | M -> math lexbuf
       | T -> text lexbuf
-      | V _ -> verb lexbuf
 }
