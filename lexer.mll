@@ -119,22 +119,21 @@ let identchar = ['A'-'Z' 'a'-'z' '_' '\'' '0'-'9']
 let id = (lowercase | '_') identchar*
 
 rule token = parse
-  | "##" { token lexbuf }
-
+  | blank+ { token lexbuf }
   | '"' { begin_mode T lexbuf }
   | '$' { begin_mode M lexbuf }
   | '{' { begin_mode C lexbuf }
   | '}' { end_mode lexbuf }
-  | '\n' { newline lexbuf; STRING "\n" }
+  | '\n'  { new_line lexbuf; token lexbuf }
 
   | "\\\"" { STRING "\"" }
   | "\\\\" { STRING "\\" }
   | "\\r" { STRING "\\r" }
   | "\\n" { STRING "\\n" }
   | "\\t" { STRING "\\t" }
-  | '\\' num num num as x { STRING x }
+  | '\\' digit digit digit as x { STRING x }
   | '\\' [^ '"' '\\' 'r' 'n' 't' '0'-'9']
-  | '\\' num [^'0'-'9']
+  | '\\' digit [^'0'-'9']
       { lex_error lexbuf "invalid escaping in code mode" }
 
   | "(*" { start_comment (); comment lexbuf }
