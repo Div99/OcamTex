@@ -37,7 +37,7 @@
         | [] -> C
 
   let begin_mode m lexbuf =
-      mode := (m , loc lexbuf) :: !mode;
+      st := (m , loc lexbuf) :: !st;
       match m with
         | C -> COMMENT_BEGIN
         | M -> MATH_BEGIN
@@ -47,27 +47,37 @@
       match !mode with
         | (m,_)::rem ->
             mode := rem;
-            begin match m with
+            ( match m with
               | C -> COMMENT_END
               | M -> MATH_END
-              | T -> TEXT_END
-            end
-        | [] -> lex_error lexbuf !mode "mismatched mode delimiter"
+              | T -> TEXT_END )
+        | [] -> lex_error lexbuf !mode "mismatched delimiters"
 
-  let reset_mode () =
+  let reset_st () =
       mode := []
 
   let top_level () =
       !mode = []
 
-  (* should be defined inside the tuple, but we're facing the value restriction
-      here, and it so happens that [lex_error] must have arbitrary return type,
-      thus the convoluted workaround. *)
   let lex_error lexbuf s = lex_error lexbuf (get_stack ()) s
 
-  let verb_buf = Buffer.create 16
+  let string_buffer = Buffer.create 256
+
+  let reset_string_buffer () = Buffer.reset string_buffer
+
+  let get_stored_string () = Buffer.contents string_buffer
+
+
+let char_for_backslash = function
+  | 'n' -> '\010'
+  | 'r' -> '\013'
+  | 'b' -> '\008'
+  | 't' -> '\009'
+  | c   -> c
+
 
   let comment_buf = Buffer.create 42
+
   let comment_nests = ref 0
 
   let start_comment () =
@@ -88,15 +98,6 @@
     newline lexbuf;
     STRING "\n" (* to keep the line count correct *)
 
-  let verbatim_delims = Hashtbl.create 7
-
-  let add_verb_delim lexbuf delim ident =
-    match delim with
-      | '$' | '"' | '{' ->
-          lex_error lexbuf
-            "Character '%c' is not allowed as a verbatim delimiter." delim
-      | _ ->
-          Hashtbl.add verbatim_delims delim ident
 }
 
 (******************************************************************)
@@ -104,16 +105,21 @@
 (******************************************************************)
 
 
-let space = [' ' '\t']
-let lalpha = ['a'-'z']
-let ualpha = ['A'-'Z']
-let alpha = (lalpha | ualpha)
-let num = ['0'-'9']
-let alpha_num = (alpha | num)
-let ident = alpha (alpha_num | '_')*
+let white = [' ' '\t']+
+let digit = ['0'-'9']
+let int = '-'? digit+
+let letter = ['a'-'z' 'A'-'Z']
+let id = ('_' | letter) ('_' | letter | digit)*
+
+let newline = ('\013'* '\010')
+let blank = [' ' '\009' '\012']
+
+let lowercase = ['a'-'z']
+let identchar = ['A'-'Z' 'a'-'z' '_' '\'' '0'-'9']
+let id = (lowercase | '_') identchar*
 
 rule token = parse
-  | "##" { pragma lexbuf }
+  | "##" { token lexbuf }
 
   | '"' { begin_mode T lexbuf }
   | '$' { begin_mode M lexbuf }
