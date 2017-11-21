@@ -10,7 +10,6 @@
     | C
     | M
     | T
-    | V of string option
 
   type loc = Lexing.position * Lexing.position
 
@@ -28,40 +27,37 @@
 (* Helper functions for lexing strings *)
 (******************************************************************)
 
+  let st = ref []
 
-  let get_stack, get_mode, begin_mode, end_mode, reset_mode, top_level =
-    let mode = ref [] in
-    (* get stack is for use in [lex_error] *)
-    begin fun () -> !mode end,
-    begin fun () ->
-      match !mode with
+  let get_stack = !st
+
+  let get_mode =
+      match !st with
         | (m,_)::_ -> m
         | [] -> C
-    end,
-    begin fun m lexbuf ->
+
+  let begin_mode m lexbuf =
       mode := (m , loc lexbuf) :: !mode;
       match m with
-        | C -> CODE_BEGIN
+        | C -> COMMENT_BEGIN
         | M -> MATH_BEGIN
         | T -> TEXT_BEGIN
-        | V apply -> VERB_BEGIN apply
-    end,
-    begin fun lexbuf ->
+
+  let end_mode m lexbuf =
       match !mode with
         | (m,_)::rem ->
             mode := rem;
             begin match m with
-              | C -> CODE_END
+              | C -> COMMENT_END
               | M -> MATH_END
               | T -> TEXT_END
-              | V _ -> VERB_END
             end
         | [] -> lex_error lexbuf !mode "mismatched mode delimiter"
-    end,
-    begin fun () ->
+
+  let reset_mode () =
       mode := []
-    end,
-    begin fun () ->
+
+  let top_level () =
       !mode = []
     end
 

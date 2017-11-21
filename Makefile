@@ -1,4 +1,3 @@
-ast:
 	ocamlbuild -use-ocamlfind ast.byte
 
 parse:
