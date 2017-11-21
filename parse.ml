@@ -4,9 +4,11 @@ open ExtLib
 
 exception SyntaxError of string
  
-let parse_file filename = failwith "Unimplemented"
-
 let string_of_file filename = 
  let chan = open_in filename in
  let input = IO.input_channel chan in
  IO.read_all input
+
+let parse_file filename = 
+  let input_string = string_of_file filename in
+  failwith "Unimplemented"
