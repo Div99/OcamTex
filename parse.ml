@@ -4,7 +4,7 @@ open ExtLib
 open Lexing
 
 exception SyntaxError of string
- 
+
 let location_message lexbuf =
   let start = lexeme_start_p lexbuf in
   let finish = lexeme_end_p lexbuf in
@@ -26,16 +26,16 @@ let unexpected_error msg lexbuf =
   failwith ("Unexpected parsing exception: " ^ msg
             ^ "\noccurred at " ^ (location_message lexbuf))
 
-let string_of_file filename = 
+let string_of_file filename =
  let chan = open_in filename in
  let input = IO.input_channel chan in
  IO.read_all input
 
-let parse_file filename = 
+let parse_file filename =
   let input_string = string_of_file filename in
   let lexbuf = from_string input_string in
-  ([], [Ast.Text "Hiiii"])
-(*   
+  ([], [Ast.Text "This is cool"])
+(*
   try Parser.parse_expression Lexer.token lexbuf
   with
   | Parser.Error | Lexer.Error -> parse_error lexbuf
