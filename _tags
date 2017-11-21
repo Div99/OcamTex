@@ -1,2 +1,1 @@
-true: use_menhir, package(oUnit), package(str), package(extlib)
-<repl.*>: package(react), package(lwt), package(lambda-term)
+true: use_menhir, package(oUnit), package(extlib)
