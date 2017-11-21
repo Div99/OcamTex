@@ -59,7 +59,6 @@
 
   let top_level () =
       !mode = []
-    end
 
   (* should be defined inside the tuple, but we're facing the value restriction
       here, and it so happens that [lex_error] must have arbitrary return type,
@@ -113,7 +112,7 @@ let num = ['0'-'9']
 let alpha_num = (alpha | num)
 let ident = alpha (alpha_num | '_')*
 
-rule  = parse
+rule token = parse
   | "##" { pragma lexbuf }
 
   | '"' { begin_mode T lexbuf }
