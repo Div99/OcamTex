@@ -4,7 +4,7 @@ open ExtLib
 
 exception SyntaxError of string
  
-let parse_file _ = failwith "Unimplemented"
+let parse_file filename = failwith "Unimplemented"
 
 let string_of_file filename = 
  let chan = open_in filename in
