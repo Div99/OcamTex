@@ -23,3 +23,5 @@ setup.log
 *.aux
 *.log
 *.pdf
+
+*.tex

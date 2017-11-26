@@ -1,4 +1,3 @@
-open Ast
 open Parse
 open To_tex
 open Arg

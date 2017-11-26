@@ -17,7 +17,7 @@ and space = Single | SingleHalf | Double
 
 (* Expressions making up the document *)
 and expr =
-  | Cmd of cmd * style option * expr list
+  | Cmd of cmd
   | Var of string
   | Math of string
   | Text of string
@@ -25,7 +25,7 @@ and expr =
 
 (* Commands that the user can use *)
 and cmd =
-  | List of expr list
+  | List of expr list * style option
   | Table of expr list list
   | Equation of expr
   | InlineEq of expr

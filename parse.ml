@@ -2,6 +2,7 @@
  * throws: SyntaxError if [file] cannot be parsed. *)
 open ExtLib
 open Lexing
+open Ast
 
 exception SyntaxError of string
 
@@ -32,9 +33,11 @@ let string_of_file filename =
  IO.read_all input
 
 let parse_file filename =
-  let input_string = string_of_file filename in
-  let lexbuf = from_string input_string in
-  ([], [Ast.Text "This is cool"])
+  (* let input_string = string_of_file filename in
+    let lexbuf = from_string input_string in *)
+  ([], [Text "This is text.";
+        Comment "This is a comment.";
+        Math "This is math."])
 (*
   try Parser.parse_expression Lexer.token lexbuf
   with
