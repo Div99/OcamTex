@@ -37,7 +37,11 @@ let parse_file filename =
     let lexbuf = from_string input_string in *)
   ([], [Text "This is text.";
         Comment "This is a comment.";
-        Math "This is math."])
+        Math "This is math.";
+        Cmd (List ([Text "Text item 1";
+                    Math "Math item 2";
+                    Cmd (List ([Text "Nested text item 1";
+                                Math "Nested math item 2"], None))], None))])
 (*
   try Parser.parse_expression Lexer.token lexbuf
   with
