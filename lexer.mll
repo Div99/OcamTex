@@ -31,7 +31,7 @@
 
   let get_stack () = !st
 
-  let get_mode =
+  let get_mode () =
       match !st with
         | (m,_)::_ -> m
         | [] -> T
@@ -57,7 +57,13 @@
     match !st with
      | (CMD _, _)::rem ->
             st := rem; CMD_END
-     | _ -> STRING ""
+     | _ -> lex_error lexbuf !st "no cmd to end"
+
+  let end_cmd_newline lexbuf =
+    match !st with
+     | (CMD _, _)::rem ->
+            st := rem; new_line lexbuf; CMD_END
+     | _ -> new_line lexbuf; STRING "\n"
 
   let reset_st () =
       st := []
@@ -127,8 +133,8 @@ let id = (lowercase | '_') identchar*
 rule text = parse
   | "|m" { begin_mode M lexbuf }
   | "|" {end_mode lexbuf}
-  | '\n' ('\t')+ { command lexbuf }
-  | '\n' { new_line lexbuf; STRING "\n"; end_cmd lexbuf; token lexbuf }
+  | ('\n' ('\t')+ as c) { new_line lexbuf; STRING c }
+  | '\n' { end_cmd_newline lexbuf}
   | "|END" { end_cmd lexbuf }
   | "|" (['a'-'z' 'A'-'Z' '0'-'9' '.' ' ' '_']+ as apply) "->"
       { begin_mode (CMD apply) lexbuf }
@@ -137,7 +143,7 @@ rule text = parse
   | ('\n' (' ' | '\t' )* )+ '\n'
       { let s = lexeme lexbuf in
   let l = ref 0 in
-  String.iter (fun c -> if c='\n' then (newline lexbuf ; incr l)) s;
+  String.iter (fun c -> if c='\n' then (new_line lexbuf ; incr l)) s;
         PAR !l }
   | '#' { STRING "\\#" }
   | '_' { STRING "\\_" }
@@ -168,7 +174,7 @@ rule text = parse
 and comment = parse
   | "*/" { try end_comment () with Exit -> comment lexbuf }
   | "/*" { start_comment (); comment lexbuf }
-  | '\n' { newline lexbuf; Buffer.add_char comment_buf '\n'; comment lexbuf }
+  | '\n' { new_line lexbuf; Buffer.add_char comment_buf '\n'; comment lexbuf }
   | "\\\"" { Buffer.add_char comment_buf '"'; comment lexbuf }
   | (_ as c) { Buffer.add_char comment_buf c; comment lexbuf }
   | eof { lex_error lexbuf "unexpected end of file in comment" }
@@ -176,8 +182,8 @@ and comment = parse
 and math = parse
   | "|t" { begin_mode T lexbuf }
   | "|" {end_mode lexbuf}
-  | '\n' ['\t']+ { command lexbuf }
-  | '\n' { new_line lexbuf; end_cmd lexbuf; token lexbuf }
+  | ('\n' ('\t')+ as c) { new_line lexbuf; STRING c }
+  | '\n' { end_cmd_newline lexbuf}
   | "|END" { end_cmd lexbuf }
 
   | '%' { STRING "\\%" }
@@ -209,10 +215,10 @@ and command = parse
   | "|m" { begin_mode M lexbuf }
   | "|t" { begin_mode T lexbuf }
   | "|" {end_mode lexbuf}
-  | '\n' ['\t']+ { command lexbuf }
-  | '\n' { new_line lexbuf; end_cmd lexbuf; token lexbuf }
+  | ('\n' ('\t')+ as c) { new_line lexbuf; STRING c }
+  | '\n' { end_cmd_newline lexbuf}
   | "|END" { end_cmd lexbuf }
-  | '\n' { newline lexbuf; Buffer.add_char comment_buf '\n'; comment lexbuf }
+  | '\n' { new_line lexbuf; Buffer.add_char comment_buf '\n'; comment lexbuf}
   | "\\\"" { Buffer.add_char comment_buf '"'; comment lexbuf }
   | (_ as c) { Buffer.add_char comment_buf c; comment lexbuf }
   | eof { lex_error lexbuf "unexpected end of file in a command" }
@@ -222,5 +228,5 @@ and command = parse
     match get_mode () with
       | M -> math lexbuf
       | T -> text lexbuf
-      | CMD -> command lexbuf
+      | CMD _ -> command lexbuf
 }

@@ -9,6 +9,7 @@ let has_dups lst =
 
 %token <string> STRING
 %token <string> COMMENT
+%token <int> PAR
 %token EOF
 %token TEXT_BEGIN TEXT_END
 %token MATH_BEGIN MATH_END
