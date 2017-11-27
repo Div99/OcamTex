@@ -133,7 +133,9 @@ let id = (lowercase | '_') identchar*
 rule text = parse
   | "|m" { begin_mode M lexbuf }
   | "|" {end_mode lexbuf}
-  | ('\n' ('\t')+ as c) { new_line lexbuf; STRING c }
+  | "|HEAD" { HEAD }
+  | "|BODY" { BODY }
+  | ('\n' ('\t')+ as c) { new_line lexbuf; STRING "\n"  }
   | '\n' { end_cmd_newline lexbuf}
   | "|END" { end_cmd lexbuf }
   | "|" (['a'-'z' 'A'-'Z' '0'-'9' '.' ' ' '_']+ as apply) "->"
@@ -167,9 +169,10 @@ rule text = parse
       { start_comment (); Buffer.add_char comment_buf c; end_comment () }
   | '(' { STRING "(" }
 
-  | [^ '"' '$' '{' '<' '\n' '\\' '#' '_' '^' '}' '%' '(']+
+  | [^ '"' '$' '{' '<' '\n' '\\' '#' '_' '^' '}' '%' '(' ]+
       { STRING(lexeme lexbuf) }
-  | eof { lex_error lexbuf "unexpected end of file in text mode" }
+  | eof { if top_level () then EOF else
+          lex_error lexbuf "unexpected end of file in text mode" }
 
 and comment = parse
   | "*/" { try end_comment () with Exit -> comment lexbuf }
@@ -181,8 +184,8 @@ and comment = parse
 
 and math = parse
   | "|t" { begin_mode T lexbuf }
-  | "|" {end_mode lexbuf}
-  | ('\n' ('\t')+ as c) { new_line lexbuf; STRING c }
+  | '|' {end_mode lexbuf}
+  | ('\n' ('\t')+ as c) { new_line lexbuf; STRING "\n" }
   | '\n' { end_cmd_newline lexbuf}
   | "|END" { end_cmd lexbuf }
 
@@ -214,8 +217,8 @@ and command = parse
       { start_comment (); Buffer.add_char comment_buf c; end_comment () }
   | "|m" { begin_mode M lexbuf }
   | "|t" { begin_mode T lexbuf }
-  | "|" {end_mode lexbuf}
-  | ('\n' ('\t')+ as c) { new_line lexbuf; STRING c }
+  | '|' {end_mode lexbuf}
+  | ('\n' ('\t')+ as c) { new_line lexbuf; STRING "\n" }
   | '\n' { end_cmd_newline lexbuf}
   | "|END" { end_cmd lexbuf }
   | '\n' { new_line lexbuf; Buffer.add_char comment_buf '\n'; comment lexbuf}

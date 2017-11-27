@@ -5,6 +5,7 @@ open Ast
 %token <string> STRING
 %token <string> COMMENT
 %token <int> PAR
+%token HEAD, BODY
 %token EOF
 %token TEXT_BEGIN TEXT_END
 %token MATH_BEGIN MATH_END
@@ -14,18 +15,22 @@ open Ast
 %token <string> TITLE, AUTHOR
 %token <float> MARGIN, IDENT
 
-%start <Ast.head_expr> parse_head_expression
-%start <Ast.expr> parse_expression
+%start <Ast.doc> doc
 
 %%
 
-parse_head_expression:
-  | head_expr EOF
-        { $1 }
+doc:
+  | head body EOF
+        { ($1, $2) }
 
-parse_expression:
-  | expr EOF
-    { $1 }
+head:
+  | HEAD head_expr*
+        { $2 }
+  | head_expr*
+        { $1 }
+body:
+  | BODY expr*
+        { $2 }
 ;
 
 

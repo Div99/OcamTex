@@ -34,11 +34,11 @@ let write_string_to_file filename str =
   output_string chan str; close_out chan
 
 let write_to_tex doc = let output_str = match doc with
-    | body ->
+    | (_,body) ->
       "\\documentclass{article}\n" ^
       "\\usepackage{verbatim}\n\n" ^
       "\\begin{document}\n"
-      ^ fold_exprs [body] ^
+      ^ fold_exprs body ^
       "\\end{document}" in
   write_string_to_file "output.tex" output_str;
   "output.tex"
