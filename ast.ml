@@ -24,7 +24,7 @@ and expr =
   | Text of expr list
   | Comment of string
 
-(* Commands that the user can use *)
+(* Commands that the user can use
 and cmd =
   | List of expr list * style option
   | Table of expr list list
@@ -36,7 +36,7 @@ and cmd =
   | Section of string
   | Subsection of string
   | Subsubsection of string
-  | Newpage
+  | Newpage *)
 
 (* The style of a command *)
 and style = string list

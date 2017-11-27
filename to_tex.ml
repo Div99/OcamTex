@@ -3,17 +3,23 @@ open Ast
 let is_cmd = function Cmd _ -> true | _ -> false
 
 let rec expr_to_tex expr = match expr with
-  | Text s -> s
+  | String s -> s
+  | Text exprs -> fold_exprs exprs
+  | Math exprs -> "$" ^ fold_exprs exprs ^ "$"
   | Comment s -> "\\begin{comment}\n" ^ s ^ "\n\\end{comment}"
-  | Math s -> "$" ^ s ^ "$"
-  | Var s -> failwith "?"
-  | Cmd cmd -> cmd_to_tex cmd
+  | Var s -> failwith "Unimplemented"
+  | Cmd (cmd, style, exprs) -> cmd_to_tex cmd style exprs
 
-and cmd_to_tex cmd = match cmd with
-  | List (items, style) -> "\\begin{itemize}\n" ^
-                           fold_exprs ~prefix:"\\item " items ^
-                           "\\end{itemize}"
-  | _ -> failwith "Unimplemented"
+and cmd_to_tex cmd style exprs = match cmd with
+  | "list" ->
+    let order = if style = None then "itemize" else "enumerate" in
+    let sty = match style with
+      | None -> ""
+      | Some s -> s in
+    "\\begin{" ^ order ^ "}[label=(\\" ^ sty ^ "*)]\n" ^
+    fold_exprs ~prefix:"\\item " exprs ^
+    "\\end{" ^ order ^ "}"
+  | _ -> "\\" ^ cmd
 
 and head_to_tex head_list = failwith "Unimplemented"
 
