@@ -1,10 +1,5 @@
 %{
 open Ast
-open Ast_factory
-
-let has_dups lst =
-  let open List in
-  length lst <> length (sort_uniq Pervasives.compare lst)
 %}
 
 %token <string> STRING
@@ -14,7 +9,7 @@ let has_dups lst =
 %token TEXT_BEGIN TEXT_END
 %token MATH_BEGIN MATH_END
 %token <string> CMD_BEGIN
-%token <string option> STYLE
+%token <string> STYLE
 %token CMD_END
 %token <string> TITLE, AUTHOR
 %token <float> MARGIN, IDENT
@@ -36,69 +31,68 @@ parse_expression:
 
 head_expr:
 | TITLE
-    { make_title $1 }
+    { Title (Some $1) }
 | AUTHOR
-    { make_author $1 }
+    { Author (Some $1) }
 | MARGIN
-    { make_margins $1 }
+    { Margins $1 }
 | IDENT
-    { make_indent $1 }
+    { Indent $1 }
 
 ;
 
 expr:
 | TEXT_BEGIN text* TEXT_END
-    { make_text $2 }
+    { Text $2 }
 | MATH_BEGIN math* MATH_END
-    { make_math $2 }
+    { Math $2 }
 | CMD_BEGIN STYLE cmd* CMD_END
-    { make_cmd $1 $2 $3 }
+    { Cmd ($1, Some $2, $3) }
 | CMD_BEGIN cmd* CMD_END
-    { make_cmd $1 None $2 }
+    { Cmd ($1, None, $2) }
 | STRING
-    { make_string $1 }
+    { String $1 }
 | COMMENT
-    { make_comment $1 }
+    { Comment $1 }
 ;
 
 text:
 | MATH_BEGIN math* MATH_END
-    { make_math $2 }
+    { Math $2 }
 | CMD_BEGIN STYLE cmd* CMD_END
-    { make_cmd $1 $2 $3 }
+    { Cmd ($1, Some $2, $3) }
 | CMD_BEGIN cmd* CMD_END
-    { make_cmd $1 None $2 }
+    { Cmd ($1, None, $2) }
 | STRING
-    { make_string $1 }
+    { String $1 }
 | COMMENT
-    { make_comment $1 }
+    { Comment $1 }
 ;
 
 math:
 | TEXT_BEGIN text* TEXT_END
-    { make_text $2 }
+    { Text $2 }
 | CMD_BEGIN STYLE cmd* CMD_END
-    { make_cmd $1 $2 $3 }
+    { Cmd ($1, Some $2, $3) }
 | CMD_BEGIN cmd* CMD_END
-    { make_cmd $1 None $2 }
+    { Cmd ($1, None, $2) }
 | STRING
-    { make_string $1 }
+    { String $1 }
 | COMMENT
-    { make_comment $1 }
+    { Comment $1 }
 ;
 
 cmd:
 | TEXT_BEGIN text* TEXT_END
-    { make_text $2 }
+    { Text $2 }
 | MATH_BEGIN math* MATH_END
-    { make_math $2 }
+    { Math $2 }
 | CMD_BEGIN STYLE cmd* CMD_END
-    { make_cmd $1 $2 $3 }
+    { Cmd ($1, Some $2, $3) }
 | CMD_BEGIN cmd* CMD_END
-    { make_cmd $1 None $2 }
+    { Cmd ($1, None, $2) }
 | STRING
-    { make_string $1 }
+    { String $1 }
 | COMMENT
-    { make_comment $1 }
+    { Comment $1 }
 ;
-
