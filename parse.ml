@@ -33,13 +33,21 @@ let string_of_file filename =
  IO.read_all input
 
 let parse_file filename =
-  (* let input_string = string_of_file filename in
-    let lexbuf = from_string input_string in *)
-  ([], [Text "This is text.";
-        Comment "This is a comment.";
-        Math "This is math."])
-(*
-  try Parser.parse_expression Lexer.token lexbuf
+  let inx = In_channel.create filename in
+  let lexbuf = from_channel inx in
+  lexbuf.lex_curr_p <- { lexbuf.lex_curr_p with pos_fname = filename };
+  try
+    parser_start Lexer.token lexbuf;
+    In_channel.close inx
   with
-  | Parser.Error | Lexer.Error -> parse_error lexbuf
-  | Failure s -> unexpected_error s lexbuf *)
+      | Parser.Error | Lexer.Error -> parse_error lexbuf
+      | Failure s -> unexpected_error s lexbuf
+    (* ([], [Text "This is text.";
+        Comment "This is a comment.";
+        Math "This is math."]) *)
+
+let parse_expr =
+  parse Parser.parse_expression
+
+let parse_head_expr =
+  parse Parser.parse_head_expression

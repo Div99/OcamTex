@@ -4,4 +4,6 @@ exception SyntaxError of string
  * throws: SyntaxError if [file] cannot be parsed. *)
 val parse_file : string -> Ast.doc
 
-val string_of_file : string -> string
+val parse_expr : string -> Ast.expr
+
+val parse_head_expr : string -> Ast.head_expr

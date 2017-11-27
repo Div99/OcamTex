@@ -27,18 +27,21 @@ val make_font : string * int -> head_expr
 (* [make_var str] represents the variable [str] *)
 val make_var : string -> expr
 
-(* [make_math str] represents the text [str] in math mode *)
-val make_math : string -> expr
+(* [make_string str] represents the text [str] in math mode *)
+val make_string : string -> expr
 
-(* [make_text str] represents the plain text [str] *)
-val make_text: string -> expr
+(* [make_math expr_list] represents the string made up of [expr_list] in math mode *)
+val make_math : expr list -> expr
+
+(* [make_text expr_list] represents the plain text made of [expr_list] *)
+val make_text: expr list -> expr
 
 (* [make_comment str] represents the commend [str] *)
 val make_comment : string -> expr
 
 (* Commands *)
 (* [make_command cmd style [x1; ...; xn]] is the command expression of [cmd style exprlst] *)
-val make_cmd : cmd -> style option -> expr list -> expr
+val make_cmd : string -> string option -> expr list -> expr
 
 (* [make_list [x1; ...; xn]] represents the list [x1; ...; xn] *)
 val make_list : expr list -> cmd

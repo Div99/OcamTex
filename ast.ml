@@ -17,10 +17,11 @@ and space = Single | SingleHalf | Double
 
 (* Expressions making up the document *)
 and expr =
-  | Cmd of cmd
+  | Cmd of string * string option * expr list
   | Var of string
-  | Math of string
-  | Text of string
+  | String of string
+  | Math of expr list
+  | Text of expr list
   | Comment of string
 
 (* Commands that the user can use *)
