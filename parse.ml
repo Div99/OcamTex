@@ -33,12 +33,11 @@ let string_of_file filename =
  IO.read_all input
 
 let parse_file filename =
-  let inx = In_channel.create filename in
+  let inx = open_in filename in
   let lexbuf = from_channel inx in
   lexbuf.lex_curr_p <- { lexbuf.lex_curr_p with pos_fname = filename };
   try
-    parser_start Lexer.token lexbuf;
-    In_channel.close inx
+    Parser.parse_expression Lexer.token lexbuf
  (*  ([], [Text "This is text.";
         Comment "This is a comment.";
         Math "This is math.";
@@ -47,11 +46,5 @@ let parse_file filename =
                     Cmd (List ([Text "Nested text item 1";
                                 Math "Nested math item 2"], None))], None))]) *)
   with
-      | Parser.Error | Lexer.Error -> parse_error lexbuf
+      | Parser.Error | Lexer.Lexical_error _ -> parse_error lexbuf
       | Failure s -> unexpected_error s lexbuf
-
-let parse_expr =
-  parse Parser.parse_expression
-
-let parse_head_expr =
-  parse Parser.parse_head_expression
