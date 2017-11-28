@@ -169,8 +169,7 @@ rule head = parse
 and text = parse
   | "|m [" { begin_mode M lexbuf }
   | ']' {end_mode lexbuf}
-  | ('\n' ('\t')+ as c) { new_line lexbuf; STRING "\n"  }
-  | '\n' { end_cmd_newline lexbuf}
+  | '\n' { new_line lexbuf; STRING "\n"}
   | "|END" { end_cmd lexbuf }
   | "|" (['a'-'z' 'A'-'Z' '0'-'9' '_']+ as apply) "->"
       { begin_mode (CMD apply) lexbuf }
@@ -212,8 +211,7 @@ and comment = parse
 and math = parse
   | "|t [" { begin_mode T lexbuf }
   | ']' {end_mode lexbuf}
-  | ('\n' ('\t')+ as c) { new_line lexbuf; STRING "\n" }
-  | '\n' { end_cmd_newline lexbuf}
+  | '\n' {new_line lexbuf; STRING "\n"}
   | "|END" { end_cmd lexbuf }
 
   | '%' { STRING "\\%" }
@@ -240,20 +238,40 @@ and math = parse
   | eof { lex_error lexbuf "unexpected end of file in math mode" }
 
 and command = parse
-  | "/*" { start_comment (); comment lexbuf }
-  | "//" ([^'\n' '\r']* as c)
-      { new_line lexbuf; start_comment (); Buffer.add_string comment_buf c;
-        end_comment () }
   | "|m" { begin_mode M lexbuf }
   | "|t" { begin_mode T lexbuf }
   | '|' {end_mode lexbuf}
   | ('\n' ('\t')+ as c) { new_line lexbuf; STRING "\n" }
   | '\n' { end_cmd_newline lexbuf}
   | "|END" { end_cmd lexbuf }
-  | '\n' { new_line lexbuf; Buffer.add_char comment_buf '\n'; comment lexbuf}
-  | "\\\"" { Buffer.add_char comment_buf '"'; comment lexbuf }
-  | (_ as c) { Buffer.add_char comment_buf c; comment lexbuf }
-  | eof { lex_error lexbuf "unexpected end of file in a command" }
+  | "|" (['a'-'z' 'A'-'Z' '0'-'9' '_']+ as apply) "->"
+      { begin_mode (CMD apply) lexbuf }
+  | '|' (['a'-'z' 'A'-'Z' '0'-'9' '_']+ as apply)
+      { begin_mode (CMD apply) lexbuf }
+  | "/*" { start_comment (); comment lexbuf }
+  | "//" ([^'\n' '\r']* as c)
+      { new_line lexbuf; start_comment (); Buffer.add_string comment_buf c;
+        end_comment () }
+  | '#' { STRING "\\#" }
+  | '_' { STRING "\\_" }
+  | '%' { STRING "\\%" }
+  | "\\\\" { STRING "\\\\" }
+  | "\\{" { STRING "\\{" }
+  | "\\}" { STRING "\\}" }
+  | "\\$" { STRING "\\$" }
+  | "\\\"" { STRING "\"" }
+  | "\\&" { STRING "\\&" }
+  | "\\ " { STRING "\\ " }
+  | "\\'" { STRING "\\'" }
+  | "\\`" { STRING "\\`" }
+  | '\\' [^ '\\' '{' '}' '$' '"' '&' ' ']
+      { lex_error lexbuf "invalid escaping in command mode" }
+
+  | '(' { STRING "(" }
+  | [^ '"' '$' '{' '<' '\n' '\\' '#' '_' '^' '}' '%' '(' '/' '|' '[' ']']+
+      { STRING(lexeme lexbuf) }
+  | eof { if top_level () then EOF else
+          lex_error lexbuf "unexpected end of file in command mode" }
 
 {
   let token lexbuf =
