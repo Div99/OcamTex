@@ -11,6 +11,8 @@ and head_expr =
   | Linespace of space
   | Indent of float
   | Font of string * int
+  | HString of string
+  | HComment of string
 
 (* The type for determining spacing between lines*)
 and space = Single | SingleHalf | Double

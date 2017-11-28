@@ -4,7 +4,6 @@ open Ast
 
 %token <string> STRING
 %token <string> COMMENT
-%token <int> PAR
 %token HEAD, BODY
 %token EOF
 %token TEXT_BEGIN TEXT_END
@@ -43,7 +42,10 @@ head_expr:
     { Margins $1 }
 | IDENT
     { Indent $1 }
-
+| STRING
+    { HString $1 }
+| COMMENT
+    { HComment $1 }
 ;
 
 expr:

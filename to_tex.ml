@@ -26,9 +26,10 @@ and head_to_tex head_list = failwith "Unimplemented"
 and fold_exprs ?prefix:(pre = "") expr_list =
   List.fold_left
     (fun acc expr -> let pre = if is_cmd expr then "" else pre in
-      acc ^ pre ^ expr_to_tex expr ^ "\n")
-    "" expr_list
+     acc ^ pre ^ expr_to_tex expr)  "" expr_list
 
+body_to_tex =
+  Str.split (regexp "[^a-zA-Z0-9]*[\t\r ]")
 let write_string_to_file filename str =
   let chan = open_out filename in
   output_string chan str; close_out chan
@@ -39,6 +40,6 @@ let write_to_tex doc = let output_str = match doc with
       "\\usepackage{verbatim}\n\n" ^
       "\\begin{document}\n"
       ^ fold_exprs body ^
-      "\\end{document}" in
+      "\n\\end{document}" in
   write_string_to_file "output.tex" output_str;
   "output.tex"

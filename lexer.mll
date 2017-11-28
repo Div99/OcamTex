@@ -51,7 +51,7 @@
               | M -> MATH_END
               | T -> TEXT_END
               | CMD _ -> CMD_END )
-        | [] -> lex_error lexbuf !st "mismatched delimiters"
+        | [] -> lex_error lexbuf !st "Not valid end of mode"
 
   let end_cmd lexbuf =
     match !st with
@@ -93,14 +93,12 @@ let char_for_backslash = function
   let comment_nests = ref 0
 
   let start_comment () =
-    incr comment_nests;
-    Buffer.add_string comment_buf "/*"
+    incr comment_nests
 
   (* Close the current comment. If we are still in a comment, raise Exit.
      Else, return a COMMENT token containing the whole comment. *)
   let end_comment () =
     decr comment_nests;
-    Buffer.add_string comment_buf "*/";
     if !comment_nests >= 1 then raise Exit;
     let s = Buffer.contents comment_buf in
     Buffer.reset comment_buf;
@@ -110,6 +108,13 @@ let char_for_backslash = function
     new_line lexbuf;
     STRING "\n" (* to keep the line count correct *)
 
+  let head = ref true
+
+  let is_head () = !head
+
+  let end_head () = head := false
+
+  let reset_head () = head := true
 }
 
 (******************************************************************)
@@ -130,23 +135,10 @@ let lowercase = ['a'-'z']
 let identchar = ['A'-'Z' 'a'-'z' '_' '\'' '0'-'9']
 let id = (lowercase | '_') identchar*
 
-rule text = parse
-  | "|m" { begin_mode M lexbuf }
-  | "|" {end_mode lexbuf}
+rule head = parse
   | "|HEAD" { HEAD }
-  | "|BODY" { BODY }
-  | ('\n' ('\t')+ as c) { new_line lexbuf; STRING "\n"  }
-  | '\n' { end_cmd_newline lexbuf}
-  | "|END" { end_cmd lexbuf }
-  | "|" (['a'-'z' 'A'-'Z' '0'-'9' '.' ' ' '_']+ as apply) "->"
-      { begin_mode (CMD apply) lexbuf }
-  | "|" (['a'-'z' 'A'-'Z' '0'-'9' '.' ' ' '_']+ as apply)
-      { begin_mode (CMD apply) lexbuf }
-  | ('\n' (' ' | '\t' )* )+ '\n'
-      { let s = lexeme lexbuf in
-  let l = ref 0 in
-  String.iter (fun c -> if c='\n' then (new_line lexbuf ; incr l)) s;
-        PAR !l }
+  | "|BODY" { end_head (); BODY }
+  | '\n' { token_return lexbuf }
   | '#' { STRING "\\#" }
   | '_' { STRING "\\_" }
   | '%' { STRING "\\%" }
@@ -162,14 +154,49 @@ rule text = parse
   | "\\`" { STRING "\\`" }
 
   | '\\' [^ '\\' '{' '}' '$' '"' '&' ' ']
-      { lex_error lexbuf "invalid escaping in text mode" }
+      { lex_error lexbuf "invalid escaping in head" }
 
   | "/*" { start_comment (); comment lexbuf }
-  | "//" (_ as c) '\n'
-      { start_comment (); Buffer.add_char comment_buf c; end_comment () }
+  | "//" ([^'\n' '\r']* as c)
+      { new_line lexbuf; start_comment (); Buffer.add_string comment_buf c;
+        end_comment () }
   | '(' { STRING "(" }
 
-  | [^ '"' '$' '{' '<' '\n' '\\' '#' '_' '^' '}' '%' '(' ]+
+  | [^ '"' '$' '{' '<' '\n' '\\' '#' '_' '^' '}' '%' '(' '/' '|']+
+      { STRING(lexeme lexbuf) }
+  | eof { lex_error lexbuf "no body given" }
+
+and text = parse
+  | "|m [" { begin_mode M lexbuf }
+  | ']' {end_mode lexbuf}
+  | ('\n' ('\t')+ as c) { new_line lexbuf; STRING "\n"  }
+  | '\n' { end_cmd_newline lexbuf}
+  | "|END" { end_cmd lexbuf }
+  | "|" (['a'-'z' 'A'-'Z' '0'-'9' '_']+ as apply) "->"
+      { begin_mode (CMD apply) lexbuf }
+  | '|' (['a'-'z' 'A'-'Z' '0'-'9' '_']+ as apply)
+      { begin_mode (CMD apply) lexbuf }
+  | "/*" { start_comment (); comment lexbuf }
+  | "//" ([^'\n' '\r']* as c)
+      { new_line lexbuf; start_comment (); Buffer.add_string comment_buf c;
+        end_comment () }
+  | '#' { STRING "\\#" }
+  | '_' { STRING "\\_" }
+  | '%' { STRING "\\%" }
+  | "\\\\" { STRING "\\\\" }
+  | "\\{" { STRING "\\{" }
+  | "\\}" { STRING "\\}" }
+  | "\\$" { STRING "\\$" }
+  | "\\\"" { STRING "\"" }
+  | "\\&" { STRING "\\&" }
+  | "\\ " { STRING "\\ " }
+  | "\\'" { STRING "\\'" }
+  | "\\`" { STRING "\\`" }
+  | '\\' [^ '\\' '{' '}' '$' '"' '&' ' ']
+      { lex_error lexbuf "invalid escaping in text mode" }
+
+  | '(' { STRING "(" }
+  | [^ '"' '$' '{' '<' '\n' '\\' '#' '_' '^' '}' '%' '(' '/' '|' '[' ']']+
       { STRING(lexeme lexbuf) }
   | eof { if top_level () then EOF else
           lex_error lexbuf "unexpected end of file in text mode" }
@@ -183,8 +210,8 @@ and comment = parse
   | eof { lex_error lexbuf "unexpected end of file in comment" }
 
 and math = parse
-  | "|t" { begin_mode T lexbuf }
-  | '|' {end_mode lexbuf}
+  | "|t [" { begin_mode T lexbuf }
+  | ']' {end_mode lexbuf}
   | ('\n' ('\t')+ as c) { new_line lexbuf; STRING "\n" }
   | '\n' { end_cmd_newline lexbuf}
   | "|END" { end_cmd lexbuf }
@@ -204,17 +231,19 @@ and math = parse
       { lex_error lexbuf "invalid escaping in math mode" }
 
   | "/*" { start_comment (); comment lexbuf }
-  | "//" (_ as c) '\n'
-      { start_comment (); Buffer.add_char comment_buf c; end_comment () }
+  | "//" ([^'\n' '\r']* as c)
+      { new_line lexbuf; start_comment (); Buffer.add_string comment_buf c;
+        end_comment () }
   | '(' { STRING "(" }
 
-  | [^ '"' '$' '{' '\n' '\\' '}' '%' '(']+ { STRING(lexeme lexbuf) }
+  | [^ '"' '$' '{' '\n' '\\' '}' '%' '(' '/' '|' '[' ']']+ { STRING(lexeme lexbuf) }
   | eof { lex_error lexbuf "unexpected end of file in math mode" }
 
 and command = parse
   | "/*" { start_comment (); comment lexbuf }
-  | "//" (_ as c) '\n'
-      { start_comment (); Buffer.add_char comment_buf c; end_comment () }
+  | "//" ([^'\n' '\r']* as c)
+      { new_line lexbuf; start_comment (); Buffer.add_string comment_buf c;
+        end_comment () }
   | "|m" { begin_mode M lexbuf }
   | "|t" { begin_mode T lexbuf }
   | '|' {end_mode lexbuf}
@@ -228,7 +257,8 @@ and command = parse
 
 {
   let token lexbuf =
-    match get_mode () with
+    if is_head () then head lexbuf
+    else match get_mode () with
       | M -> math lexbuf
       | T -> text lexbuf
       | CMD _ -> command lexbuf
