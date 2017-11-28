@@ -15,8 +15,8 @@ and cmd_to_tex cmd style exprs = match cmd with
     let order = if style = None then "itemize" else "enumerate" in
     let sty = match style with
       | None -> ""
-      | Some s -> s in
-    "\\begin{" ^ order ^ "}[label=(\\" ^ sty ^ "*)]\n" ^
+      | Some s -> "[label=" ^ s ^ "]" in
+    "\\begin{" ^ order ^ "}" ^ sty ^ "\n" ^
     fold_exprs ~prefix:"\\item " exprs ^
     "\\end{" ^ order ^ "}"
   | _ -> "\\" ^ cmd

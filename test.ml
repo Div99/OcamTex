@@ -1,23 +1,51 @@
 open OUnit2
 open To_tex
 open Ast
+open Str
+
+let strip = global_replace (regexp "\n") ""
+
+let equal s1 s2 = assert_equal (strip s1) (strip s2)
 
 let to_tex = [
-  "text" >:: (fun _ -> assert_equal "text" (expr_to_tex (Text "text")));
-  "comment" >:: (fun _ -> assert_equal "\\begin{comment}\ncomment\n\\end{comment}"
+  "text" >:: (fun _ -> equal "text" (expr_to_tex (Text [String "text"])));
+  "comment" >:: (fun _ -> equal "\\begin{comment}comment\\end{comment}"
                     (expr_to_tex (Comment "comment")));
-  "math" >:: (fun _ -> assert_equal "$math$" (expr_to_tex (Math "math")));
-  "list" >:: (fun _ -> assert_equal "\\begin{itemize}
+  "math" >:: (fun _ -> equal "$math$" (expr_to_tex (Math [String "math"])));
+  "unordered" >:: (fun _ -> equal "\\begin{itemize}
 \\item Text item 1
 \\item $Math item 2$
 \\begin{itemize}
 \\item Nested text item 1
 \\item $Nested math item 2$
 \\end{itemize}
-\\end{itemize}" (expr_to_tex (Cmd (List ([Text "Text item 1";
-                                          Math "Math item 2";
-                                          Cmd (List ([Text "Nested text item 1";
-                                                      Math "Nested math item 2"], None))], None)))))
+\\end{itemize}" (expr_to_tex (Cmd ("list",
+                                   None, [
+                                     Text [String "Text item 1"];
+                                     Math [String "Math item 2"];
+                                     Cmd ("list",
+                                          None, [
+                                            Text [String "Nested text item 1"];
+                                            Math [String "Nested math item 2"]
+                                          ])
+                                   ]))));
+  "ordered" >:: (fun _ -> equal "\\begin{enumerate}[label=(\\alph*)]
+\\item Text item 1
+\\item $Math item 2$
+\\begin{enumerate}[label=(\\Alph*)]
+\\item Nested text item 1
+\\item $Nested math item 2$
+\\end{enumerate}
+\\end{enumerate}" (expr_to_tex (Cmd ("list",
+                                     Some "(\\alph*)", [
+                                       Text [String "Text item 1"];
+                                       Math [String "Math item 2"];
+                                       Cmd ("list",
+                                            Some "(\\Alph*)", [
+                                              Text [String "Nested text item 1"];
+                                              Math [String "Nested math item 2"]
+                                            ])
+                                     ]))))
 ]
 
 let suite =

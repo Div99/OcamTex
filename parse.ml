@@ -98,13 +98,7 @@ let parse_file filename =
      let s = Parser.doc Lexer.token lexbuf in
      flush std_formatter (print_mode_stack (Lexer.get_stack ()));
      reset_head (); s
- (*  ([], [Text "This is text.";
-        Comment "This is a comment.";
-        Math "This is math.";
-        Cmd (List ([Text "Text item 1";
-                    Math "Math item 2";
-                    Cmd (List ([Text "Nested text item 1";
-                                Math "Nested math item 2"], None))], None))]) *)
+
   with
       | Lexer.Lexical_error(loc, stk, s) -> error loc stk "parse error: %s" s
       | Parser.Error -> parse_error lexbuf
