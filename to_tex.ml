@@ -28,8 +28,10 @@ and fold_exprs ?prefix:(pre = "") expr_list =
     (fun acc expr -> let pre = if is_cmd expr then "" else pre in
      acc ^ pre ^ expr_to_tex expr)  "" expr_list
 
-body_to_tex =
-  Str.split (regexp "[^a-zA-Z0-9]*[\t\r ]")
+and with_newline s =
+  let f x = x ^ "   \\\\" in
+  Str.(substitute_first (regexp "\n[^\n\r]+.*$") f s)
+
 let write_string_to_file filename str =
   let chan = open_out filename in
   output_string chan str; close_out chan
