@@ -1,5 +1,8 @@
 |HEAD
   //This is a comment.
+  |title "This is the title"
+  |author "Author"
+
 |BODY
   Hello World.
   // This is a comment too.
@@ -12,4 +15,28 @@
   This is a test..
 
 |list
-  |item
+	-	HI
+	|list
+		-	POTATO
+	-	LOL
+	-	BOB
+
+<
+>
+_
+
+^
+:inf
+:alpha
+
+
+|matrix -> []
+	1	2	3	4	5
+	1	2	3
+	1	2	3	45
+
+|table
+	1	2	3	4	5
+	3	5	2
+
+|eqn f(n) = g(n) + 2 * 3

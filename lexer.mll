@@ -75,6 +75,8 @@
 
   let string_buffer = Buffer.create 256
 
+  let token_item lexbuf =
+
   let reset_string_buffer () = Buffer.reset string_buffer
 
   let get_stored_string () = Buffer.contents string_buffer
@@ -241,6 +243,7 @@ and command = parse
   | "|m" { begin_mode M lexbuf }
   | "|t" { begin_mode T lexbuf }
   | '|' {end_mode lexbuf}
+  | '-' {}
   | ('\n' ('\t')+ as c) { new_line lexbuf; STRING "\n" }
   | '\n' { end_cmd_newline lexbuf}
   | "|END" { end_cmd lexbuf }

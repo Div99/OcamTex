@@ -16,9 +16,9 @@ and cmd_to_tex cmd style exprs = match cmd with
     let sty = match style with
       | None -> ""
       | Some s -> "[label=" ^ s ^ "]" in
-    "\\begin{" ^ order ^ "}" ^ sty ^ "\n" ^
-    fold_exprs ~prefix:"\\item " exprs ^
-    "\\end{" ^ order ^ "}"
+    "\\begin{" ^ order ^ "}" ^ sty ^
+    fold_exprs ~prefix:"" exprs ^
+    "\n\\end{" ^ order ^ "}"
   | _ -> "\\" ^ cmd
 
 and head_to_tex head_list = failwith "Unimplemented"
