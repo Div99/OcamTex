@@ -1,42 +1,28 @@
 |HEAD
-  //This is a comment.
-  |title "This is the title"
-  |author "Author"
+	//This is a comment.
 
 |BODY
-  Hello World.
-  // This is a comment too.
-    Hello
+Hello World.
+// This is a comment too.
+Hello
 
-  /* And so is this one
-     ...
-  */
-  |m [2+3=5]
-  This is a test..
+/* And so is this one
+...
+*/
+|m [2+3=5]
+
+fdd
 
 |list
-	-	HI
-	|list
-		-	POTATO
-	-	LOL
-	-	BOB
-
-<
->
-_
-
-^
-:inf
-:alpha
+	|item
 
 
-|matrix -> []
-	1	2	3	4	5
-	1	2	3
-	1	2	3	45
 
-|table
-	1	2	3	4	5
-	3	5	2
 
-|eqn f(n) = g(n) + 2 * 3
+
+
+dfsd
+f
+sdf
+ds
+f

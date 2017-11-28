@@ -9,8 +9,8 @@ open Ast
 %token TEXT_BEGIN TEXT_END
 %token MATH_BEGIN MATH_END
 %token <string> CMD_BEGIN
-%token <string> STYLE
 %token CMD_END
+%token <string> STYLE
 %token <string> TITLE, AUTHOR
 %token <float> MARGIN, IDENT
 
@@ -48,15 +48,14 @@ head_expr:
     { HComment $1 }
 ;
 
+
 expr:
 | TEXT_BEGIN text* TEXT_END
     { Text $2 }
 | MATH_BEGIN math* MATH_END
     { Math $2 }
-| CMD_BEGIN STYLE cmd* CMD_END
-    { Cmd ($1, Some $2, $3) }
-| CMD_BEGIN cmd* CMD_END
-    { Cmd ($1, None, $2) }
+| CMD_BEGIN STYLE? cmd* CMD_END
+    { Cmd ($1, $2, $3) }
 | STRING
     { String $1 }
 | COMMENT
@@ -66,10 +65,8 @@ expr:
 text:
 | MATH_BEGIN math* MATH_END
     { Math $2 }
-| CMD_BEGIN STYLE cmd* CMD_END
-    { Cmd ($1, Some $2, $3) }
-| CMD_BEGIN cmd* CMD_END
-    { Cmd ($1, None, $2) }
+| CMD_BEGIN STYLE? cmd* CMD_END
+    { Cmd ($1, $2, $3) }
 | STRING
     { String $1 }
 | COMMENT
@@ -79,10 +76,8 @@ text:
 math:
 | TEXT_BEGIN text* TEXT_END
     { Text $2 }
-| CMD_BEGIN STYLE cmd* CMD_END
-    { Cmd ($1, Some $2, $3) }
-| CMD_BEGIN cmd* CMD_END
-    { Cmd ($1, None, $2) }
+| CMD_BEGIN STYLE? cmd* CMD_END
+    { Cmd ($1, $2, $3) }
 | STRING
     { String $1 }
 | COMMENT
@@ -94,10 +89,8 @@ cmd:
     { Text $2 }
 | MATH_BEGIN math* MATH_END
     { Math $2 }
-| CMD_BEGIN STYLE cmd* CMD_END
-    { Cmd ($1, Some $2, $3) }
-| CMD_BEGIN cmd* CMD_END
-    { Cmd ($1, None, $2) }
+| CMD_BEGIN STYLE? cmd* CMD_END
+    { Cmd ($1, $2, $3) }
 | STRING
     { String $1 }
 | COMMENT
