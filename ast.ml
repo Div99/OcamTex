@@ -5,8 +5,8 @@ type doc = head_expr list * expr list
 
 (* The type of the document header *)
 and head_expr =
-  | Title of string option
-  | Author of string option
+  | Title of string
+  | Author of string
   | Margins of float
   | Linespace of space
   | Indent of float
