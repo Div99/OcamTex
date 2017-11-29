@@ -51,5 +51,5 @@ let write_to_tex doc = let output_str = match doc with
       "\\maketitle\n\n" ^
       fold_body body ^
       "\n\\end{document}" in
-  write_string_to_file "output.tex" output_str;
-  "output.tex"
+  write_string_to_file "test.tex" output_str;
+  "test.tex"
