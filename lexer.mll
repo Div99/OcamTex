@@ -69,7 +69,7 @@
             st := rem; CMD_END
      | _ -> lex_error lexbuf !st "no cmd to end"
 
-  let end_cmd_newline lexbuf =
+  let end_cmd_newline () =
     match !st with
      | (CMD _, _)::rem ->
             st := rem; CMD_END
@@ -99,17 +99,20 @@
 
   let levels = ref 0
 
+  let incr_levels () = levels := !levels + 1; !levels
+
+  let decr_levels () = levels := !levels - 1; !levels
 
 	let change_indent curr_level is_cmd lexbuf =
     new_line lexbuf;
-    let f acc n = if n <= curr_level then (levels := !levels + 1; acc)
+    let f n acc = if curr_level <= n then (incr_levels (); acc)
                   else n::acc in
 		if is_cmd then
-		 if !indent_st = [] || curr_level > List.hd !indent_st then
-      indent_st := curr_level::(!indent_st)
-     else (indent_st := List.fold_left f [] !indent_st;
-      indent_st := curr_level::(!indent_st))
-		else  indent_st := List.fold_left f [] !indent_st
+		 (if !indent_st = [] || curr_level > List.hd !indent_st then
+        indent_st := curr_level::(!indent_st)
+      else (indent_st := List.fold_right f !indent_st [];
+         indent_st := curr_level::(!indent_st)))
+		else  indent_st := List.fold_right f !indent_st []
 
   let comment_buf = Buffer.create 128
 
@@ -162,6 +165,8 @@ let id = (lowercase | '_') identchar*
 rule head = parse
   | "|HEAD" { HEAD }
   | "|BODY" { end_head (); BODY }
+  | "|title" white '"'([^ '\n']+ as c)'"'   {TITLE c}
+  | "|author" white '"'([^ '\n']+ as c)'"'   {AUTHOR c}
   | '\n' { token_return lexbuf }
   | '#' { STRING "\\#" }
   | '_' { STRING "\\_" }
@@ -188,7 +193,8 @@ rule head = parse
 
   | [^ '"' '$' '{' '<' '\n' '\\' '#' '_' '^' '}' '%' '(' '/' '|']+
       { STRING(lexeme lexbuf) }
-  | _ { lex_error lexbuf "Unexpected char in cmd_end mode" }
+  | '|' ([^ '\n' ' ']+ as s)  { lex_error lexbuf "Unknown tag in head '%s'" s}
+  | (_ as c) { lex_error lexbuf "Unexpected char in head mode '%c'" c}
 
   | eof { lex_error lexbuf "no body given" }
 
@@ -222,7 +228,7 @@ and text = parse
   | '(' { STRING "(" }
   | [^ '"' '$' '{' '<' '\n' '\\' '#' '_' '^' '}' '%' '(' '/' '|' '[' ']']+
       { STRING(lexeme lexbuf) }
-  | _ { lex_error lexbuf "Unexpected char in text mode" }
+  | (_ as c) { lex_error lexbuf "Unexpected char in text mode '%c'" c}
   | eof { if top_level () then EOF else
           lex_error lexbuf "unexpected end of file in text mode" }
 
@@ -258,7 +264,7 @@ and math = parse
   | '(' { STRING "(" }
 
   | [^ '"' '$' '{' '\n' '\\' '}' '%' '(' '/' '|' '[' ']']+ { STRING(lexeme lexbuf) }
-  | _ { lex_error lexbuf "Unexpected char in math mode" }
+  | (_ as c) { lex_error lexbuf "Unexpected char in math mode '%c'" c}
   | eof { lex_error lexbuf "unexpected end of file in math mode" }
 
 and command = parse
@@ -305,16 +311,13 @@ and command = parse
   | '(' { STRING "(" }
   | [^ '"' '$' '{' '<' '\n' '\\' '#' '_' '^' '}' '%' '(' '/' '|' '[' ']' '-']+
       { STRING(lexeme lexbuf) }
-  | _ { lex_error lexbuf "Unexpected char in cmd mode" }
+  | (_ as c) { lex_error lexbuf "Unexpected char in cmd mode '%c'" c}
   | eof { lex_error lexbuf "unexpected end of file in command mode" }
-
-and cmd_end = parse
-  | "" { end_cmd_newline lexbuf }
 
 {
   let token lexbuf =
-    if is_head () then head lexbuf else
-    if !levels > 0 then (levels := !levels - 1; end_cmd_newline lexbuf)
+    if is_head () then head lexbuf
+    else if !levels > 0 then (decr_levels (); end_cmd_newline ())
     else if !cmd_begin <> None then add_cmd ()
     else match get_mode () with
       | M -> math lexbuf

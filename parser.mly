@@ -3,7 +3,6 @@ open Ast
 %}
 
 %token <string> STRING
-%token <string> COMMENT
 %token HEAD, BODY
 %token EOF
 %token TEXT_BEGIN TEXT_END
@@ -11,8 +10,12 @@ open Ast
 %token <string> CMD_BEGIN
 %token CMD_END
 %token <string> STYLE
-%token <string> TITLE, AUTHOR
+%token <string> TITLE
+%token <string> AUTHOR
 %token <float> MARGIN, IDENT
+%token <string> COMMENT
+
+%left COMMENT
 
 %start <Ast.doc> doc
 
@@ -37,7 +40,7 @@ head_expr:
 | TITLE
     { Title (Some $1) }
 | AUTHOR
-    { Author (Some $1) }
+    { Author (Some  $1) }
 | MARGIN
     { Margins $1 }
 | IDENT
