@@ -13,6 +13,7 @@ open Ast
 %token <string> AUTHOR
 %token <float> MARGIN, IDENT
 %token <string> COMMENT
+%token <string> VAR
 
 %left COMMENT
 
@@ -62,6 +63,8 @@ expr:
     { String $1 }
 | COMMENT
     { Comment $1 }
+| VAR
+    { Var $1 }
 ;
 
 text:
