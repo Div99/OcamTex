@@ -9,6 +9,7 @@ open Ast
 %token MATH_BEGIN MATH_END
 %token <string * Ast.style> CMD_BEGIN
 %token CMD_END
+%token <string> STYLE
 %token <string> TITLE
 %token <string> AUTHOR
 %token <float> MARGIN, IDENT
