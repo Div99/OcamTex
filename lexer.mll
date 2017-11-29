@@ -157,7 +157,6 @@ let id = ('_' | letter) ('_' | letter | digit)*
 
 let newline = ('\013'* '\010')
 let blank = [' ' '\009' '\012']
-
 let lowercase = ['a'-'z']
 
 rule head = parse
@@ -194,7 +193,7 @@ rule head = parse
       { STRING(lexeme lexbuf) }
   | '|' ([^ '\n' ' ']+ as s)  { lex_error lexbuf "Unknown tag in head '%s'" s}
   | (_ as c) { lex_error lexbuf "Unexpected char in head mode '%c'" c}
-
+  | '\n' (' ')+ {lex_error lexbuf "non-tab indent"}
   | eof { lex_error lexbuf "no body given" }
 
 and text = parse
@@ -229,6 +228,7 @@ and text = parse
   | [^ '"' '$' '{' '<' '\n' '\\' '#' '_' '^' '}' '%' '(' '/' '|' '[' ']']+
       { STRING(lexeme lexbuf) }
   | (_ as c) { lex_error lexbuf "Unexpected char in text mode '%c'" c}
+  | '\n' (' ')+ {lex_error lexbuf "non-tab indent"}
   | eof { if top_level () then EOF else
           lex_error lexbuf "unexpected end of file in text mode" }
 
@@ -266,6 +266,7 @@ and math = parse
 
   | [^ '"' '$' '{' '\n' '\\' '}' '%' '(' '/' '|' '[' ']' ':']+ { STRING(lexeme lexbuf) }
   | (_ as c) { lex_error lexbuf "Unexpected char in math mode '%c'" c}
+  | '\n' (' ')+ {lex_error lexbuf "non-tab indent"}
   | eof { lex_error lexbuf "unexpected end of file in math mode" }
 
 and command = parse
@@ -314,6 +315,7 @@ and command = parse
   | [^ '"' '$' '{' '<' '\n' '\\' '#' '_' '^' '}' '%' '(' '/' '|' '[' ']' '-']+
       { STRING(lexeme lexbuf) }
   | (_ as c) { lex_error lexbuf "Unexpected char in cmd mode '%c'" c}
+  | '\n' (' ')+ {lex_error lexbuf "non-tab indent"}
   | eof { lex_error lexbuf "unexpected end of file in command mode" }
 
 {
