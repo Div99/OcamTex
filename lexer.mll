@@ -157,10 +157,7 @@ let id = ('_' | letter) ('_' | letter | digit)*
 
 let newline = ('\013'* '\010')
 let blank = [' ' '\009' '\012']
-
 let lowercase = ['a'-'z']
-let identchar = ['A'-'Z' 'a'-'z' '_' '\'' '0'-'9']
-let id = (lowercase | '_') identchar*
 
 rule head = parse
   | "|HEAD" { HEAD }
@@ -168,6 +165,7 @@ rule head = parse
   | "|title" white '"'([^ '\n']+ as c)'"'   {TITLE c}
   | "|author" white '"'([^ '\n']+ as c)'"'   {AUTHOR c}
   | '\n' { token_return lexbuf }
+  | ':' (id as v)  { VAR v }
   | '#' { STRING "\\#" }
   | '_' { STRING "\\_" }
   | '%' { STRING "\\%" }
@@ -195,7 +193,7 @@ rule head = parse
       { STRING(lexeme lexbuf) }
   | '|' ([^ '\n' ' ']+ as s)  { lex_error lexbuf "Unknown tag in head '%s'" s}
   | (_ as c) { lex_error lexbuf "Unexpected char in head mode '%c'" c}
-
+  | '\n' (' ')+ {lex_error lexbuf "non-tab indent"}
   | eof { lex_error lexbuf "no body given" }
 
 and text = parse
@@ -210,6 +208,7 @@ and text = parse
   | "//" ([^'\n' '\r']* as c)
       { start_comment (); Buffer.add_string comment_buf c;
         end_comment () }
+  | ':' (id as v) { VAR v }
   | '#' { STRING "\\#" }
   | '_' { STRING "\\_" }
   | '%' { STRING "\\%" }
@@ -229,6 +228,7 @@ and text = parse
   | [^ '"' '$' '{' '<' '\n' '\\' '#' '_' '^' '}' '%' '(' '/' '|' '[' ']']+
       { STRING(lexeme lexbuf) }
   | (_ as c) { lex_error lexbuf "Unexpected char in text mode '%c'" c}
+  | '\n' (' ')+ {lex_error lexbuf "non-tab indent"}
   | eof { if top_level () then EOF else
           lex_error lexbuf "unexpected end of file in text mode" }
 
@@ -244,6 +244,7 @@ and math = parse
   | "|t [" { begin_mode T lexbuf }
   | ']' {end_mode lexbuf}
   | '\n' {new_line lexbuf; STRING "\n"}
+  | ':' (id as v) { VAR v }
   | '%' { STRING "\\%" }
   | "\\\\" { STRING "\\\\" }
   | "\\{" { STRING "\\{" }
@@ -265,6 +266,7 @@ and math = parse
 
   | [^ '"' '$' '{' '\n' '\\' '}' '%' '(' '/' '|' '[' ']' ':']+ { STRING(lexeme lexbuf) }
   | (_ as c) { lex_error lexbuf "Unexpected char in math mode '%c'" c}
+  | '\n' (' ')+ {lex_error lexbuf "non-tab indent"}
   | eof { lex_error lexbuf "unexpected end of file in math mode" }
 
 and command = parse
@@ -277,7 +279,7 @@ and command = parse
   | ']' {end_mode lexbuf}
   | ('\n' ('\t')* as c) '-'
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD ("item" * None)) lexbuf}
-  | '\n' ('\t')*  "|END" { new_line lexbuf; end_cmd lexbuf }
+  | '\n' ('\t')*  "|end" { new_line lexbuf; end_cmd lexbuf }
   | "|END" { end_cmd lexbuf }
   | ('\n' ('\t')* as c) '|' (['a'-'z' 'A'-'Z' '0'-'9' '_']+ as apply)  "->" ([^'\n']+ as style)
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply * Some style)) lexbuf }
@@ -285,6 +287,7 @@ and command = parse
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, None)) lexbuf}
   | ('\n' ('\t')* as c)  { change_indent (curr_level c) false lexbuf;
                            STRING "\n" }
+  | ':' (id as v) { VAR v }
   | "/*" { start_comment (); comment lexbuf }
   | "//" ([^'\n' '\r']* as c)
       { start_comment (); Buffer.add_string comment_buf c;
@@ -311,6 +314,7 @@ and command = parse
   | [^ '"' '$' '{' '<' '\n' '\\' '#' '_' '^' '}' '%' '(' '/' '|' '[' ']' '-']+
       { STRING(lexeme lexbuf) }
   | (_ as c) { lex_error lexbuf "Unexpected char in cmd mode '%c'" c}
+  | '\n' (' ')+ {lex_error lexbuf "non-tab indent"}
   | eof { lex_error lexbuf "unexpected end of file in command mode" }
 
 {

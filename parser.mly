@@ -7,13 +7,14 @@ open Ast
 %token EOF
 %token TEXT_BEGIN TEXT_END
 %token MATH_BEGIN MATH_END
-%token <string> CMD_BEGIN
+%token <string * Ast.style> CMD_BEGIN
 %token CMD_END
 %token <string> STYLE
 %token <string> TITLE
 %token <string> AUTHOR
 %token <float> MARGIN, IDENT
 %token <string> COMMENT
+%token <string> VAR
 
 %left COMMENT
 
@@ -57,34 +58,40 @@ expr:
     { Text $2 }
 | MATH_BEGIN math* MATH_END
     { Math $2 }
-| CMD_BEGIN STYLE? cmd* CMD_END
-    { Cmd ($1, $2, $3) }
+| CMD_BEGIN cmd* CMD_END
+    { Cmd ($1, $2) }
 | STRING
     { String $1 }
 | COMMENT
     { Comment $1 }
+| VAR
+    { Var $1 }
 ;
 
 text:
 | MATH_BEGIN math* MATH_END
     { Math $2 }
-| CMD_BEGIN STYLE? cmd* CMD_END
-    { Cmd ($1, $2, $3) }
+| CMD_BEGIN cmd* CMD_END
+    { Cmd ($1, $2) }
 | STRING
     { String $1 }
 | COMMENT
     { Comment $1 }
+| VAR
+    { Var $1 }
 ;
 
 math:
 | TEXT_BEGIN text* TEXT_END
     { Text $2 }
-| CMD_BEGIN STYLE? cmd* CMD_END
-    { Cmd ($1, $2, $3) }
+| CMD_BEGIN cmd* CMD_END
+    { Cmd ($1, $2) }
 | STRING
     { String $1 }
 | COMMENT
     { Comment $1 }
+| VAR
+    { Var $1 }
 ;
 
 cmd:
@@ -92,10 +99,12 @@ cmd:
     { Text $2 }
 | MATH_BEGIN math* MATH_END
     { Math $2 }
-| CMD_BEGIN STYLE? cmd* CMD_END
-    { Cmd ($1, $2, $3) }
+| CMD_BEGIN cmd* CMD_END
+    { Cmd ($1, $2) }
 | STRING
     { String $1 }
 | COMMENT
     { Comment $1 }
+| VAR
+    { Var $1 }
 ;
