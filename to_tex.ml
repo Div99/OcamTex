@@ -45,6 +45,7 @@ let write_to_tex doc = let output_str = match doc with
     | (head,body) ->
       "\\documentclass{article}\n" ^
       "\\usepackage{verbatim}\n\n" ^
+      "\\graphicspath{ {images/} }" ^
       fold_head head ^
       "\\date{\\today}" ^
       "\\begin{document}\n\n" ^

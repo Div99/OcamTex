@@ -9,7 +9,7 @@
   type mode =
     | M
     | T
-    | CMD of string
+    | CMD of string * (string option)
 
   type loc = Lexing.position * Lexing.position
 
@@ -38,11 +38,11 @@
 
   let cmd_begin = ref None
 
-  let set_cmd_begin s = cmd_begin := Some s
+  let set_cmd_begin cmd style = cmd_begin := Some (cmd, style)
 
   let add_cmd () =
     match !cmd_begin with
-    | Some app -> cmd_begin := None; CMD_BEGIN app
+    | Some (cmd, Some style) -> cmd_begin := None; CMD_BEGIN cmd
     | None -> STRING ""
 
   let begin_mode m lexbuf =
@@ -50,7 +50,7 @@
       match m with
         | M -> MATH_BEGIN
         | T -> TEXT_BEGIN
-        | CMD apply -> set_cmd_begin apply; STRING "\n"
+        | CMD (apply, style) -> set_cmd_begin apply style; STRING "\n"
 
   let end_mode lexbuf =
       match !st with
@@ -202,10 +202,10 @@ and text = parse
   | "|m [" { begin_mode M lexbuf }
   | '\n' ('\t')* "|m [" { new_line lexbuf; begin_mode M lexbuf }
   | '\n' { new_line lexbuf; STRING "\\\\\n"}
-  | ('\n' ('\t')* as c) '|' (['a'-'z' 'A'-'Z' '0'-'9' '_']+ as apply)  "->"
-      { change_indent (curr_level c) true lexbuf; begin_mode (CMD apply) lexbuf }
+  | ('\n' ('\t')* as c) '|' (['a'-'z' 'A'-'Z' '0'-'9' '_']+ as apply)  "->" ([^'\n']+ as style)
+      { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply * Some style)) lexbuf }
   | ('\n' ('\t')* as c) '|' (['a'-'z' 'A'-'Z' '0'-'9' '_']+ as apply)
-      { change_indent (curr_level c) true lexbuf; begin_mode (CMD apply) lexbuf}
+      { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply * None)) lexbuf}
   | "/*" { start_comment (); comment lexbuf }
   | "//" ([^'\n' '\r']* as c)
       { start_comment (); Buffer.add_string comment_buf c;
@@ -276,13 +276,13 @@ and command = parse
                                begin_mode T lexbuf }
   | ']' {end_mode lexbuf}
   | ('\n' ('\t')* as c) '-'
-      { change_indent (curr_level c) true lexbuf; begin_mode (CMD "item") lexbuf}
+      { change_indent (curr_level c) true lexbuf; begin_mode (CMD ("item" * None)) lexbuf}
   | '\n' ('\t')*  "|END" { new_line lexbuf; end_cmd lexbuf }
   | "|END" { end_cmd lexbuf }
-  | ('\n' ('\t')* as c) '|' (['a'-'z' 'A'-'Z' '0'-'9' '_']+ as apply)  "->"
-      { change_indent (curr_level c) true lexbuf; begin_mode (CMD apply) lexbuf }
+  | ('\n' ('\t')* as c) '|' (['a'-'z' 'A'-'Z' '0'-'9' '_']+ as apply)  "->" ([^'\n']+ as style)
+      { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply * Some style)) lexbuf }
   | ('\n' ('\t')* as c) '|' (['a'-'z' 'A'-'Z' '0'-'9' '_']+ as apply)
-      { change_indent (curr_level c) true lexbuf; begin_mode (CMD apply) lexbuf}
+      { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, None)) lexbuf}
   | ('\n' ('\t')* as c)  { change_indent (curr_level c) false lexbuf;
                            STRING "\n" }
   | "/*" { start_comment (); comment lexbuf }
@@ -307,7 +307,6 @@ and command = parse
   | "\\`" { STRING "\\`" }
   | '\\' [^ '\\' '{' '}' '$' '"' '&' ' ']
       { lex_error lexbuf "invalid escaping in command mode" }
-
   | '(' { STRING "(" }
   | [^ '"' '$' '{' '<' '\n' '\\' '#' '_' '^' '}' '%' '(' '/' '|' '[' ']' '-']+
       { STRING(lexeme lexbuf) }
