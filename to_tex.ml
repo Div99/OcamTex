@@ -1,7 +1,5 @@
 open Ast
 
-let is_cmd = function Cmd _ -> true | _ -> false
-
 let rec expr_to_tex expr = match expr with
   | String s -> s
   | Text exprs -> fold_exprs exprs
@@ -17,16 +15,15 @@ and cmd_to_tex cmd style exprs = match cmd with
       | None -> ""
       | Some s -> "[label=" ^ s ^ "]" in
     "\\begin{" ^ order ^ "}" ^ sty ^
-    fold_exprs ~prefix:"" exprs ^
+    fold_exprs exprs ^
     "\n\\end{" ^ order ^ "}"
-  | _ -> "\\" ^ cmd
+  | _ -> "\\" ^ cmd ^ " " ^ fold_exprs exprs
 
 and head_to_tex head_list = failwith "Unimplemented"
 
-and fold_exprs ?prefix:(pre = "") expr_list =
+and fold_exprs expr_list =
   List.fold_left
-    (fun acc expr -> let pre = if is_cmd expr then "" else pre in
-     acc ^ pre ^ expr_to_tex expr)  "" expr_list
+    (fun acc expr -> acc ^ expr_to_tex expr)  "" expr_list
 
 and with_newline s =
   let f x = x ^ "   \\\\" in
