@@ -159,8 +159,6 @@ let newline = ('\013'* '\010')
 let blank = [' ' '\009' '\012']
 
 let lowercase = ['a'-'z']
-let identchar = ['A'-'Z' 'a'-'z' '_' '\'' '0'-'9']
-let id = (lowercase | '_') identchar*
 
 rule head = parse
   | "|HEAD" { HEAD }
@@ -168,6 +166,7 @@ rule head = parse
   | "|title" white '"'([^ '\n']+ as c)'"'   {TITLE c}
   | "|author" white '"'([^ '\n']+ as c)'"'   {AUTHOR c}
   | '\n' { token_return lexbuf }
+  | ':' (id as v)  { VAR v }
   | '#' { STRING "\\#" }
   | '_' { STRING "\\_" }
   | '%' { STRING "\\%" }
@@ -202,14 +201,15 @@ and text = parse
   | "|m [" { begin_mode M lexbuf }
   | '\n' ('\t')* "|m [" { new_line lexbuf; begin_mode M lexbuf }
   | '\n' { new_line lexbuf; STRING "\\\\\n"}
-  | ('\n' ('\t')* as c) '|' (['a'-'z' 'A'-'Z' '0'-'9' '_']+ as apply)  "->"
+  | ('\n' ('\t')* as c) '|' (id as apply)  "->"
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD apply) lexbuf }
-  | ('\n' ('\t')* as c) '|' (['a'-'z' 'A'-'Z' '0'-'9' '_']+ as apply)
+  | ('\n' ('\t')* as c) '|' (id as apply)
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD apply) lexbuf}
   | "/*" { start_comment (); comment lexbuf }
   | "//" ([^'\n' '\r']* as c)
       { start_comment (); Buffer.add_string comment_buf c;
         end_comment () }
+  | ':' (id as v) { VAR v }
   | '#' { STRING "\\#" }
   | '_' { STRING "\\_" }
   | '%' { STRING "\\%" }
@@ -244,6 +244,7 @@ and math = parse
   | "|t [" { begin_mode T lexbuf }
   | ']' {end_mode lexbuf}
   | '\n' {new_line lexbuf; STRING "\n"}
+  | ':' (id as v) { VAR v }
   | '%' { STRING "\\%" }
   | "\\\\" { STRING "\\\\" }
   | "\\{" { STRING "\\{" }
@@ -253,7 +254,7 @@ and math = parse
   | "\\&" { STRING "\\&" }
   | "\\ " { STRING "\\ " }
   | "\\_" { STRING "\\_" }
-
+	| ':' (['a'-'z' 'A'-'Z']+ as c) {STRING ("\\" ^ c)}
   | '\\' [^ '\\' '{' '}' '$' '"' '&' ' ' '_']
       { lex_error lexbuf "invalid escaping in math mode" }
 
@@ -263,7 +264,7 @@ and math = parse
         end_comment () }
   | '(' { STRING "(" }
 
-  | [^ '"' '$' '{' '\n' '\\' '}' '%' '(' '/' '|' '[' ']']+ { STRING(lexeme lexbuf) }
+  | [^ '"' '$' '{' '\n' '\\' '}' '%' '(' '/' '|' '[' ']' ':']+ { STRING(lexeme lexbuf) }
   | (_ as c) { lex_error lexbuf "Unexpected char in math mode '%c'" c}
   | eof { lex_error lexbuf "unexpected end of file in math mode" }
 
@@ -277,14 +278,15 @@ and command = parse
   | ']' {end_mode lexbuf}
   | ('\n' ('\t')* as c) '-'
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD "item") lexbuf}
-  | '\n' ('\t')*  "|END" { new_line lexbuf; end_cmd lexbuf }
-  | "|END" { end_cmd lexbuf }
-  | ('\n' ('\t')* as c) '|' (['a'-'z' 'A'-'Z' '0'-'9' '_']+ as apply)  "->"
+  | '\n' ('\t')*  "|end" { new_line lexbuf; end_cmd lexbuf }
+  | "|end" { end_cmd lexbuf }
+  | ('\n' ('\t')* as c) '|' (id as apply)  "->"
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD apply) lexbuf }
-  | ('\n' ('\t')* as c) '|' (['a'-'z' 'A'-'Z' '0'-'9' '_']+ as apply)
+  | ('\n' ('\t')* as c) '|' (id as apply)
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD apply) lexbuf}
   | ('\n' ('\t')* as c)  { change_indent (curr_level c) false lexbuf;
                            STRING "\n" }
+  | ':' (id as v) { VAR v }
   | "/*" { start_comment (); comment lexbuf }
   | "//" ([^'\n' '\r']* as c)
       { start_comment (); Buffer.add_string comment_buf c;
