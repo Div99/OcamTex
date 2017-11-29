@@ -12,20 +12,13 @@ Hello
 /* And so is this one
 ...
 */
-d |t
-
-  |m [2+3=5]
 
 fdd
 
-|lists
+|list
 	- Hi
 	- Bye
 	- le
-	|item zw
-	|list
-		|item
-		|item
 
 dfsd
 f
