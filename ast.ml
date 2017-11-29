@@ -19,7 +19,7 @@ and space = Single | SingleHalf | Double
 
 (* Expressions making up the document *)
 and expr =
-  | Cmd of string * string option * expr list
+  | Cmd of (string * style) * expr list
   | Var of string
   | String of string
   | Math of expr list
@@ -41,4 +41,4 @@ and cmd =
   | Newpage *)
 
 (* The style of a command *)
-and style = string list
+and style = string option

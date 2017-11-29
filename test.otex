@@ -10,10 +10,9 @@ Hello
 /* And so is this one
 ...
 */
+:infinity
 
-d
-
-  |m [:alpha 2+3=5]
+  |m [:alpha >= 2 + 3 = 5]
 
 fdd
 
@@ -25,7 +24,7 @@ fdd
 		- Hi2
 		- Bye2
 	- Hi3
-End of command
+|end
 
 dfsd
 f

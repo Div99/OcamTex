@@ -159,7 +159,6 @@ let newline = ('\013'* '\010')
 let blank = [' ' '\009' '\012']
 
 let lowercase = ['a'-'z']
-let alphanum = ['A'-'Z' 'a'-'z' '_' '0'-'9']+
 
 rule head = parse
   | "|HEAD" { HEAD }
@@ -167,7 +166,7 @@ rule head = parse
   | "|title" white '"'([^ '\n']+ as c)'"'   {TITLE c}
   | "|author" white '"'([^ '\n']+ as c)'"'   {AUTHOR c}
   | '\n' { token_return lexbuf }
-  | ':' (alphanum as v) -> { VAR v }
+  | ':' (id as v)  { VAR v }
   | '#' { STRING "\\#" }
   | '_' { STRING "\\_" }
   | '%' { STRING "\\%" }
@@ -202,15 +201,15 @@ and text = parse
   | "|m [" { begin_mode M lexbuf }
   | '\n' ('\t')* "|m [" { new_line lexbuf; begin_mode M lexbuf }
   | '\n' { new_line lexbuf; STRING "\\\\\n"}
-  | ('\n' ('\t')* as c) '|' (alphanum as apply)  "->"
+  | ('\n' ('\t')* as c) '|' (id as apply)  "->"
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD apply) lexbuf }
-  | ('\n' ('\t')* as c) '|' (alphanum as apply)
+  | ('\n' ('\t')* as c) '|' (id as apply)
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD apply) lexbuf}
   | "/*" { start_comment (); comment lexbuf }
   | "//" ([^'\n' '\r']* as c)
       { start_comment (); Buffer.add_string comment_buf c;
         end_comment () }
-  | ':' (alphanum as v) -> { VAR v }
+  | ':' (id as v) { VAR v }
   | '#' { STRING "\\#" }
   | '_' { STRING "\\_" }
   | '%' { STRING "\\%" }
@@ -245,7 +244,7 @@ and math = parse
   | "|t [" { begin_mode T lexbuf }
   | ']' {end_mode lexbuf}
   | '\n' {new_line lexbuf; STRING "\n"}
-  | ':' (alphanum as v) -> { VAR v }
+  | ':' (id as v) { VAR v }
   | '%' { STRING "\\%" }
   | "\\\\" { STRING "\\\\" }
   | "\\{" { STRING "\\{" }
@@ -279,15 +278,15 @@ and command = parse
   | ']' {end_mode lexbuf}
   | ('\n' ('\t')* as c) '-'
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD "item") lexbuf}
-  | '\n' ('\t')*  "|END" { new_line lexbuf; end_cmd lexbuf }
-  | "|END" { end_cmd lexbuf }
-  | ('\n' ('\t')* as c) '|' (alphanum as apply)  "->"
+  | '\n' ('\t')*  "|end" { new_line lexbuf; end_cmd lexbuf }
+  | "|end" { end_cmd lexbuf }
+  | ('\n' ('\t')* as c) '|' (id as apply)  "->"
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD apply) lexbuf }
-  | ('\n' ('\t')* as c) '|' (alphanum as apply)
+  | ('\n' ('\t')* as c) '|' (id as apply)
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD apply) lexbuf}
   | ('\n' ('\t')* as c)  { change_indent (curr_level c) false lexbuf;
                            STRING "\n" }
-  | ':' (alphanum as v) -> { VAR v }
+  | ':' (id as v) { VAR v }
   | "/*" { start_comment (); comment lexbuf }
   | "//" ([^'\n' '\r']* as c)
       { start_comment (); Buffer.add_string comment_buf c;
