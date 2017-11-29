@@ -201,7 +201,7 @@ rule head = parse
 and text = parse
   | "|m [" { begin_mode M lexbuf }
   | '\n' ('\t')* "|m [" { new_line lexbuf; begin_mode M lexbuf }
-  | '\n' { new_line lexbuf; STRING "\n"}
+  | '\n' { new_line lexbuf; STRING "\\\\\n"}
   | ('\n' ('\t')* as c) '|' (['a'-'z' 'A'-'Z' '0'-'9' '_']+ as apply)  "->"
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD apply) lexbuf }
   | ('\n' ('\t')* as c) '|' (['a'-'z' 'A'-'Z' '0'-'9' '_']+ as apply)
