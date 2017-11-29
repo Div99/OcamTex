@@ -20,10 +20,11 @@ fdd
 	- Hi
 	- Bye
 	- le
-	|item zw
 	|list
-		|item
-		|item
+		- Hi2
+		- Bye2
+	- Hi3
+End of command
 
 dfsd
 f
