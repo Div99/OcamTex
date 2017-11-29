@@ -253,7 +253,7 @@ and math = parse
   | "\\&" { STRING "\\&" }
   | "\\ " { STRING "\\ " }
   | "\\_" { STRING "\\_" }
-
+	| ':' (['a'-'z' 'A'-'Z']+ as c) {STRING ("\\" ^ c)}
   | '\\' [^ '\\' '{' '}' '$' '"' '&' ' ' '_']
       { lex_error lexbuf "invalid escaping in math mode" }
 
@@ -263,7 +263,7 @@ and math = parse
         end_comment () }
   | '(' { STRING "(" }
 
-  | [^ '"' '$' '{' '\n' '\\' '}' '%' '(' '/' '|' '[' ']']+ { STRING(lexeme lexbuf) }
+  | [^ '"' '$' '{' '\n' '\\' '}' '%' '(' '/' '|' '[' ']' ':']+ { STRING(lexeme lexbuf) }
   | (_ as c) { lex_error lexbuf "Unexpected char in math mode '%c'" c}
   | eof { lex_error lexbuf "unexpected end of file in math mode" }
 

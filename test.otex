@@ -12,7 +12,7 @@ Hello
 */
 d
 
-  |m [2+3=5]
+  |m [:alpha 2+3=5]
 
 fdd
 
