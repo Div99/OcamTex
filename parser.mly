@@ -38,9 +38,9 @@ body:
 
 head_expr:
 | TITLE
-    { Title (Some $1) }
+    { Title $1 }
 | AUTHOR
-    { Author (Some  $1) }
+    { Author $1 }
 | MARGIN
     { Margins $1 }
 | IDENT
