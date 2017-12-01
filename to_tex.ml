@@ -17,6 +17,13 @@ and cmd_to_tex cmd style exprs = match cmd with
     "\\begin{" ^ order ^ "}" ^ sty ^
     fold_body exprs ^
     "\n\\end{" ^ order ^ "}"
+  | "image" -> (match style with
+      | Some s -> let s = Str.split (Str.regexp ", +") s in (match s with
+          | [img;width] -> "\\includegraphics[width=" ^ width ^ "\\textwidth]{"^ img ^"}"
+          | [img] -> "\\includegraphics[width=.5\\textwidth]{"^ img ^"}"
+          | _ -> "[Bad image]")
+      | None -> "[Bad image]"
+    )
   | _ -> "\\" ^ cmd ^ " " ^ fold_body exprs
 
 and fold_body exprs =
@@ -28,7 +35,7 @@ and fold_head exprs =
 and head_to_tex = function
   | Title s -> "\\title{" ^ s ^ "}"
   | Author s -> "\\author{" ^ s ^ "}"
-  | Font (s, _) -> "\\usepackage[T1]{fontenc}\n" ^
+  | Font s -> "\\usepackage[T1]{fontenc}\n" ^
                    "\\usepackage{" ^ s ^ "}" (* tgtermes, mathptmx, txfonts *)
   | HString s -> s
   | HComment s -> "\\begin{comment}\n" ^ s ^ "\n\\end{comment}"
@@ -38,12 +45,14 @@ and make_head exprs = let assocs = List.fold_left (fun acc -> function
     | Margins f -> ("margins", string_of_float f)::acc
     | Linespace sp -> failwith "Unimplemented"
     | Indent f -> ("indent", string_of_float f)::acc
-    | Font (_, i) -> ("font_size", string_of_int i)::acc
+    | Fontsize i -> ("font_size", string_of_int i)::acc
     | _ -> acc) [] exprs in
   let font_size = match List.assoc_opt "font_size" assocs with
-    | Some s -> s
-    | None -> "12" in
-  "\\documentclass[" ^ font_size ^ "]{article}\n" ^
+    | Some s -> "[" ^ s ^ "pt]"
+    | None -> "" in
+  "\\documentclass" ^ font_size ^ "{article}\n" ^
+  "\\usepackage{graphicx}" ^
+  "\\graphicspath{ {images/} }" ^
   "\\usepackage{verbatim}\n\n" ^
   fold_head exprs ^
   "\\date{\\today}\n"

@@ -1,14 +1,9 @@
 |HEAD
 	//This is a comment.
+	|author a
 	|title THIS IS OCAMLTEX
-	|author
-	|authors
-		- Divyansh Garg
-		- Kevin Wang
 
-	|font Times
-	|fontsize 12
-	|margins
+
 
 |BODY
 
@@ -24,6 +19,8 @@ Hello
 |matrix
 
 fdd
+
+|image -> camel.jpg, .2
 
 |list
 	- Hi

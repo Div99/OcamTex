@@ -99,9 +99,9 @@
 
   let levels = ref 0
 
-  let incr_levels () = levels := !levels + 1; !levels
+  let incr_levels () = levels := !levels + 1
 
-  let decr_levels () = levels := !levels - 1; !levels
+  let decr_levels () = levels := !levels - 1
 
 	let change_indent curr_level is_cmd lexbuf =
     new_line lexbuf;
@@ -202,7 +202,7 @@ and text = parse
   | "|m [" { begin_mode M lexbuf }
   | '\n' ('\t')* "|m [" { new_line lexbuf; begin_mode M lexbuf }
   | '\n' { new_line lexbuf; STRING "\\\\\n"}
-  | ('\n' ('\t')* as c) '|' (id as apply)  "->" ([^'\n']+ as style)
+  | ('\n' ('\t')* as c) '|' (id as apply) ' '* "->" ' '* ([^'\n']+ as style)
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, Some style)) lexbuf }
   | ('\n' ('\t')* as c) '|' (id as apply)
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, None)) lexbuf}
