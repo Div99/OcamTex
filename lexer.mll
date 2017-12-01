@@ -99,9 +99,9 @@
 
   let levels = ref 0
 
-  let incr_levels () = levels := !levels + 1; !levels
+  let incr_levels () = levels := !levels + 1
 
-  let decr_levels () = levels := !levels - 1; !levels
+  let decr_levels () = levels := !levels - 1
 
 	let change_indent curr_level is_cmd lexbuf =
     new_line lexbuf;
@@ -142,6 +142,17 @@
 
   let reset_head () = head := true
 
+  let math_cmd = ref false
+
+  let open_math lexbuf =
+  match get_mode () with
+  | CMD (cmd, _) ->
+          match cmd with
+          | "matrix" | "eqn" | "equation" -> math_cmd := false; begin_mode M lexbuf
+          | _ -> lex_error lexbuf !st "Not a valid math mode command"
+  | _ -> lex_error lexbuf !st "Not a valid math mode command"
+
+
 }
 
 (******************************************************************)
@@ -162,8 +173,8 @@ let lowercase = ['a'-'z']
 rule head = parse
   | "|HEAD" { HEAD }
   | "|BODY" { end_head (); BODY }
-  | "|title" white ([^ '\n']+ as c)   {TITLE c}
-  | "|author" white ([^ '\n']+ as c)   {AUTHOR c}
+  | "|title" white ([^ '\n' '/']+ as c)   {TITLE c}
+  | "|author" white ([^ '\n' '/']+ as c)   {AUTHOR c}
   | "|font" white ([^ '\n']+ as c) {FONT c}
   | "|fontsize" white (digit+ as c) {FONTSIZE (int_of_string c)}
   | '\n' { token_return lexbuf }
@@ -324,6 +335,7 @@ and command = parse
     if is_head () then head lexbuf
     else if !levels > 0 then (decr_levels (); end_cmd_newline ())
     else if !cmd_begin <> None then add_cmd ()
+    else if !math_cmd then open_math ();
     else match get_mode () with
       | M -> math lexbuf
       | T -> text lexbuf
