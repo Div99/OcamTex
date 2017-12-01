@@ -39,7 +39,7 @@ and head_to_tex = function
   | Title s -> "\\title{" ^ s ^ "}"
   | Author s -> "\\author{" ^ s ^ "}"
   | Font s -> "\\usepackage[T1]{fontenc}\n" ^
-                   "\\usepackage{" ^ s ^ "}" (* tgtermes, mathptmx, txfonts *)
+              "\\usepackage{" ^ s ^ "}" (* tgtermes, mathptmx, txfonts *)
   | HString s -> s
   | HComment s -> "\\begin{comment}\n" ^ s ^ "\n\\end{comment}"
   | _ -> ""
@@ -49,11 +49,12 @@ and make_head exprs = let assocs = List.fold_left (fun acc -> function
     | Linespace sp -> failwith "Unimplemented"
     | Indent f -> ("indent", string_of_float f)::acc
     | Fontsize i -> ("font_size", string_of_int i)::acc
+(* 8pt, 9pt, 10pt, 11pt, 12pt, 14pt, 17pt, 20pt *)
     | _ -> acc) [] exprs in
   let font_size = match List.assoc_opt "font_size" assocs with
     | Some s -> "[" ^ s ^ "pt]"
     | None -> "" in
-  "\\documentclass" ^ font_size ^ "{article}\n" ^
+  "\\documentclass" ^ font_size ^ "{extarticle}\n" ^
   "\\usepackage{graphicx}" ^
   "\\graphicspath{ {images/} }" ^
   "\\usepackage{verbatim}\n\n" ^

@@ -1,13 +1,10 @@
 |HEAD
 	//This is a comment.
-	|author
+	|author Div
 	|title THIS IS OCAMLTEX
 
-
-
 |BODY
-
-Hello World.
+Hello World. //hello
 Hello
 
 /* And so is this one
@@ -15,12 +12,13 @@ Hello
 */
 
 |m [ 2 + 3 = 5]
-
+|equation
+	2 + 3 = 5
 |matrix
 
 fdd
 
-|image -> camel.jpg, .2
+|image -> camel.jpg, .10
 
 |list
 	- Hi
