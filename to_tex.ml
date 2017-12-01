@@ -29,19 +29,28 @@ and image_to_tex style = match style with
       | _ -> "[Bad image]")
   | None -> "[Bad image]"
 
+and table_to_tex style exprs =
+  let order = if style = None then "itemize" else "enumerate" in
+  let sty = match style with
+    | None -> ""
+    | Some s -> "[label=" ^ s ^ "]" in
+  "\\begin{" ^ order ^ "}" ^ sty ^
+  fold_body exprs ^
+  "\n\\end{" ^ order ^ "}"
+
 and fold_body exprs =
   List.fold_left (fun acc expr -> acc ^ expr_to_tex expr) "" exprs
 
-and fold_head exprs =
+and fold_head expr
   List.fold_left (fun acc expr -> acc ^ head_to_tex expr) "" exprs
 
 and head_to_tex = function
-  | Title s -> "\\title{" ^ s ^ "}"
-  | Author s -> "\\author{" ^ s ^ "}"
+  | Title s -> "\\title{" ^ s ^ "}\n"
+  | Author s -> "\\author{" ^ s ^ "}\n"
   | Font s -> "\\usepackage[T1]{fontenc}\n" ^
-              "\\usepackage{" ^ s ^ "}" (* tgtermes, mathptmx, txfonts *)
+                   "\\usepackage{" ^ s ^ "}\n" (* tgtermes, mathptmx, txfonts *)
   | HString s -> s
-  | HComment s -> "\\begin{comment}\n" ^ s ^ "\n\\end{comment}"
+  | HComment s -> "\\begin{comment}\n" ^ s ^ "\n\\end{comment}\n"
   | _ -> ""
 
 and make_head exprs = let assocs = List.fold_left (fun acc -> function
@@ -54,9 +63,16 @@ and make_head exprs = let assocs = List.fold_left (fun acc -> function
   let font_size = match List.assoc_opt "font_size" assocs with
     | Some s -> "[" ^ s ^ "pt]"
     | None -> "" in
+<<<<<<< Updated upstream
   "\\documentclass" ^ font_size ^ "{extarticle}\n" ^
   "\\usepackage{graphicx}" ^
   "\\graphicspath{ {images/} }" ^
+=======
+  "\\documentclass" ^ font_size ^ "{article}\n" ^
+  "\\usepackage{graphicx}\n" ^
+  "\\usepackage{enumerate}\n" ^
+  "\\graphicspath{ {images/} }\n" ^
+>>>>>>> Stashed changes
   "\\usepackage{verbatim}\n\n" ^
   fold_head exprs ^
   "\\date{\\today}\n"
