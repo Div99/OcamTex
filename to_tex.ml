@@ -11,6 +11,9 @@ let rec expr_to_tex = function
 and cmd_to_tex cmd style exprs = match cmd with
   | "list" -> list_to_tex style exprs
   | "image" -> image_to_tex style
+  | "section" -> "\\section{" ^ fold_body exprs ^ "}"
+  | "subsection" -> "\\subsection{" ^ fold_body exprs ^ "}"
+  | "subsubsection" -> "\\subsubsection{" ^ fold_body exprs ^ "}"
   | _ -> "\\" ^ cmd ^ " " ^ fold_body exprs
 
 and list_to_tex style exprs =
