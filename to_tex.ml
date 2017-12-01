@@ -20,7 +20,7 @@ and list_to_tex style exprs =
   let order = if style = None then "itemize" else "enumerate" in
   let sty = match style with
     | None -> ""
-    | Some s -> "[label=" ^ s ^ "]" in
+    | Some s -> "[label=(\\" ^ s ^ "*)]" in
   "\\begin{" ^ order ^ "}" ^ sty ^
   fold_body exprs ^
   "\n\\end{" ^ order ^ "}"
@@ -68,7 +68,7 @@ and make_head exprs = let assocs = List.fold_left (fun acc -> function
     | None -> "" in
   "\\documentclass" ^ font_size ^ "{article}\n" ^
   "\\usepackage{graphicx}\n" ^
-  "\\usepackage{enumerate}\n" ^
+  "\\usepackage{enumitem}\n" ^
   "\\graphicspath{ {images/} }\n" ^
   "\\usepackage{verbatim}\n\n" ^
   fold_head exprs ^
