@@ -4,16 +4,14 @@
 	|author "Div"
 
 |BODY
+
 Hello World.
 Hello
 
 /* And so is this one
 ...
 */
-
-:infinity
-
-  |m [:alpha >= 2 + 3 = 5]
+	|m [ 2 + 3 = 5]
 
 fdd
 
@@ -25,9 +23,7 @@ fdd
 		- Hi2
 		- Bye2
 	- Hi3
-|end
 
-|image -> camel
 
 dfsd
 faaa

@@ -5,7 +5,7 @@ open Unix
 
 let convert_file str =
   let ast_doc = parse_file str in
-  write_to_tex ast_doc
+  write_to_tex ast_doc str
 
 let output_file = convert_file "test.otex"
 

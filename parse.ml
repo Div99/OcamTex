@@ -72,7 +72,7 @@ let dir = ref ""
   let string_mode = function
     | M -> "Math mode"
     | T -> "Text mode"
-    | CMD name -> sprintf "Command mode (%s)" name
+    | CMD (name,_) -> sprintf "Command mode (%s)" name
 
   let print_mode_line (m,lc) =
     print_loc lc <:> print "@,"<:>print "%s opened and pending@," (string_mode m)

@@ -200,10 +200,10 @@ and text = parse
   | "|m [" { begin_mode M lexbuf }
   | '\n' ('\t')* "|m [" { new_line lexbuf; begin_mode M lexbuf }
   | '\n' { new_line lexbuf; STRING "\\\\\n"}
-  | ('\n' ('\t')* as c) '|' (['a'-'z' 'A'-'Z' '0'-'9' '_']+ as apply)  "->" ([^'\n']+ as style)
+  | ('\n' ('\t')* as c) '|' (id as apply)  "->" ([^'\n']+ as style)
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, Some style)) lexbuf }
-  | ('\n' ('\t')* as c) '|' (['a'-'z' 'A'-'Z' '0'-'9' '_']+ as apply)
-      { change_indent (curr_level c) true lexbuf; begin_mode (CMD (appl, None)) lexbuf}
+  | ('\n' ('\t')* as c) '|' (id as apply)
+      { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, None)) lexbuf}
   | "/*" { start_comment (); comment lexbuf }
   | "//" ([^'\n' '\r']* as c)
       { start_comment (); Buffer.add_string comment_buf c;
@@ -278,12 +278,12 @@ and command = parse
                                begin_mode T lexbuf }
   | ']' {end_mode lexbuf}
   | ('\n' ('\t')* as c) '-'
-      { change_indent (curr_level c) true lexbuf; begin_mode (CMD ("item, None)) lexbuf}
+      { change_indent (curr_level c) true lexbuf; begin_mode (CMD ("item", None)) lexbuf}
   | '\n' ('\t')*  "|end" { new_line lexbuf; end_cmd lexbuf }
   | "|END" { end_cmd lexbuf }
-  | ('\n' ('\t')* as c) '|' (['a'-'z' 'A'-'Z' '0'-'9' '_']+ as apply)  "->" ([^'\n']+ as style)
-      { change_indent (curr_level c) true lexbuf; begin_mode (CMD (appl, Some style)) lexbuf }
-  | ('\n' ('\t')* as c) '|' (['a'-'z' 'A'-'Z' '0'-'9' '_']+ as apply)
+  | ('\n' ('\t')* as c) '|' (id as apply)  "->" ([^'\n']+ as style)
+      { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, Some style)) lexbuf }
+  | ('\n' ('\t')* as c) '|' (id as apply)
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, None)) lexbuf}
   | ('\n' ('\t')* as c)  { change_indent (curr_level c) false lexbuf;
                            STRING "\n" }

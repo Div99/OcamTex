@@ -6,7 +6,7 @@ let rec expr_to_tex = function
   | Math exprs -> "$" ^ fold_body exprs ^ "$"
   | Comment s -> "\\begin{comment}\n" ^ s ^ "\n\\end{comment}"
   | Var s -> failwith "Unimplemented"
-  | Cmd (cmd, style, exprs) -> cmd_to_tex cmd style exprs
+  | Cmd ((cmd, style), exprs) -> cmd_to_tex cmd style exprs
 
 and cmd_to_tex cmd style exprs = match cmd with
   | "list" ->
@@ -56,12 +56,16 @@ let write_string_to_file filename str =
   let chan = open_out filename in
   output_string chan str; close_out chan
 
-let write_to_tex doc = let output_str = match doc with
+let get_filename str =
+  let n = String.length str in
+  String.sub str 0 (n-4)
+
+let write_to_tex doc str = let output_str = match doc with
     | (head,body) ->
       make_head head ^
       "\\begin{document}\n\n" ^
       "\\maketitle\n\n" ^
       fold_body body ^
       "\n\\end{document}" in
-  write_string_to_file "test.tex" output_str;
-  "test.tex"
+  let file = ((get_filename str) ^ "tex") in
+  write_string_to_file file output_str; file
