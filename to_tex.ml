@@ -21,7 +21,7 @@ and list_to_tex style exprs =
   (* alph, Alph, arabic, roman, Roman *)
   let sty = match style with
     | None -> ""
-    | Some s -> "[label=(\\" ^ s ^ "*)]" in
+    | Some s -> "[" ^ s ^ "]" in
   "\\begin{" ^ order ^ "}" ^ sty ^
   fold_body exprs ^
   "\n\\end{" ^ order ^ "}"
@@ -73,7 +73,7 @@ and make_head exprs = let assocs = List.fold_left (fun acc -> function
     | None -> "" in
   "\\documentclass" ^ font_size ^ "{article}\n" ^
   "\\usepackage{graphicx}\n" ^
-  "\\usepackage{enumitem}\n" ^
+  "\\usepackage{enumerate}\n" ^
   "\\graphicspath{ {images/} }\n" ^
   "\\usepackage{verbatim}\n\n" ^
   fold_head exprs ^

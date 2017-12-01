@@ -294,7 +294,7 @@ and command = parse
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD ("item", None)) lexbuf}
   | '\n' ('\t')*  "|end" { new_line lexbuf; end_cmd lexbuf }
   | "|END" { end_cmd lexbuf }
-  | ('\n' ('\t')* as c) '|' (id as apply)  "->" ([^'\n']+ as style)
+  | ('\n' ('\t')* as c) '|' (id as apply) ' '* "->" ' '* ([^'\n']+ as style)
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, Some style)) lexbuf }
   | ('\n' ('\t')* as c) '|' (id as apply)
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, None)) lexbuf}
