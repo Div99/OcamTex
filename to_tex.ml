@@ -18,6 +18,7 @@ and cmd_to_tex cmd style exprs = match cmd with
 
 and list_to_tex style exprs =
   let order = if style = None then "itemize" else "enumerate" in
+  (* alph, Alph, arabic, roman, Roman *)
   let sty = match style with
     | None -> ""
     | Some s -> "[label=(\\" ^ s ^ "*)]" in
@@ -51,9 +52,9 @@ and head_to_tex = function
   | Title s -> "\\title{" ^ s ^ "}\n"
   | Author s -> "\\author{" ^ s ^ "}\n"
   | Font s -> "\\usepackage[T1]{fontenc}\n" ^
-                   "\\usepackage{" ^ s ^ "}\n" (* tgtermes, mathptmx, txfonts *)
-  | HString s -> s
+              "\\usepackage{" ^ s ^ "}\n" (* tgtermes, mathptmx, txfonts *)
   | HComment s -> "\\begin{comment}\n" ^ s ^ "\n\\end{comment}\n"
+  | HString s -> s
   | _ -> ""
 
 and make_head exprs = let assocs = List.fold_left (fun acc -> function
