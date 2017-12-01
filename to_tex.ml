@@ -41,7 +41,7 @@ and table_to_tex style exprs =
 and fold_body exprs =
   List.fold_left (fun acc expr -> acc ^ expr_to_tex expr) "" exprs
 
-and fold_head expr
+and fold_head exprs =
   List.fold_left (fun acc expr -> acc ^ head_to_tex expr) "" exprs
 
 and head_to_tex = function
@@ -63,16 +63,10 @@ and make_head exprs = let assocs = List.fold_left (fun acc -> function
   let font_size = match List.assoc_opt "font_size" assocs with
     | Some s -> "[" ^ s ^ "pt]"
     | None -> "" in
-<<<<<<< Updated upstream
-  "\\documentclass" ^ font_size ^ "{extarticle}\n" ^
-  "\\usepackage{graphicx}" ^
-  "\\graphicspath{ {images/} }" ^
-=======
   "\\documentclass" ^ font_size ^ "{article}\n" ^
   "\\usepackage{graphicx}\n" ^
   "\\usepackage{enumerate}\n" ^
   "\\graphicspath{ {images/} }\n" ^
->>>>>>> Stashed changes
   "\\usepackage{verbatim}\n\n" ^
   fold_head exprs ^
   "\\date{\\today}\n"
