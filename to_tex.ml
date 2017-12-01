@@ -9,22 +9,25 @@ let rec expr_to_tex = function
   | Cmd ((cmd, style), exprs) -> cmd_to_tex cmd style exprs
 
 and cmd_to_tex cmd style exprs = match cmd with
-  | "list" ->
-    let order = if style = None then "itemize" else "enumerate" in
-    let sty = match style with
-      | None -> ""
-      | Some s -> "[label=" ^ s ^ "]" in
-    "\\begin{" ^ order ^ "}" ^ sty ^
-    fold_body exprs ^
-    "\n\\end{" ^ order ^ "}"
-  | "image" -> (match style with
-      | Some s -> let s = Str.split (Str.regexp ", +") s in (match s with
-          | [img;width] -> "\\includegraphics[width=" ^ width ^ "\\textwidth]{"^ img ^"}"
-          | [img] -> "\\includegraphics[width=.5\\textwidth]{"^ img ^"}"
-          | _ -> "[Bad image]")
-      | None -> "[Bad image]"
-    )
+  | "list" -> list_to_tex style exprs
+  | "image" -> image_to_tex style
   | _ -> "\\" ^ cmd ^ " " ^ fold_body exprs
+
+and list_to_tex style exprs =
+  let order = if style = None then "itemize" else "enumerate" in
+  let sty = match style with
+    | None -> ""
+    | Some s -> "[label=" ^ s ^ "]" in
+  "\\begin{" ^ order ^ "}" ^ sty ^
+  fold_body exprs ^
+  "\n\\end{" ^ order ^ "}"
+
+and image_to_tex style = match style with
+  | Some s -> let s = Str.split (Str.regexp ", +") s in (match s with
+      | [img;width] -> "\\includegraphics[width=" ^ width ^ "\\textwidth]{"^ img ^"}"
+      | [img] -> "\\includegraphics[width=.5\\textwidth]{"^ img ^"}"
+      | _ -> "[Bad image]")
+  | None -> "[Bad image]"
 
 and fold_body exprs =
   List.fold_left (fun acc expr -> acc ^ expr_to_tex expr) "" exprs
