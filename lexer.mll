@@ -158,10 +158,10 @@
   let open_math lexbuf =
   match get_mode () with
   | CMD (cmd, _) ->
-          match cmd with
+        (match cmd with
           | "matrix" | "eqn" | "equation" -> math_cmd := false; begin_mode M lexbuf
-          | _ -> lex_error lexbuf !st "Not a valid math mode command"
-  | _ -> lex_error lexbuf !st "Not a valid math mode command"
+          | _ -> lex_error lexbuf "Not a valid math mode command")
+  | _ -> lex_error lexbuf "Not a valid math mode command"
 
 
 }
@@ -352,7 +352,7 @@ and command = parse
     if is_head () then head lexbuf
     else if !levels > 0 then (decr_levels (); end_cmd_newline ())
     else if !cmd_begin <> None then add_cmd ()
-    else if !math_cmd then open_math ()
+    else if !math_cmd then open_math lexbuf
     else match get_mode () with
       | M -> math lexbuf
       | T -> text lexbuf
