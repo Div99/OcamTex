@@ -299,8 +299,8 @@ and math = parse
 
 and command = parse
   | "|m [" { begin_mode M lexbuf }
-  | "|matrix" { begin_mode CMD("matrix", None) lexbuf; begin_mode M lexbuf}
-  | "|matrix" ' '* "->" ' '* ([^'\n']+ as style){begin_mode CMD("matrix", Some style); begin_mode M lexbuf}
+  | "|matrix" { begin_mode CMD("matrix", None) lexbuf; open_math lexbuf}
+  | "|matrix" ' '* "->" ' '* ([^'\n']+ as style){begin_mode CMD("matrix", Some style); open_math lexbuf}
   | ('\n' ('\t')* as c) "|m" { change_indent (curr_level c) false lexbuf;
                                begin_mode M lexbuf }
   | "|t [" { begin_mode T lexbuf }
@@ -352,7 +352,7 @@ and command = parse
     if is_head () then head lexbuf
     else if !levels > 0 then (decr_levels (); end_cmd_newline ())
     else if !cmd_begin <> None then add_cmd ()
-    else if !math_cmd then open_math ();
+    else if !math_cmd then open_math ()
     else match get_mode () with
       | M -> math lexbuf
       | T -> text lexbuf
