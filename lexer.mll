@@ -165,7 +165,7 @@ rule head = parse
   | "|title" white ([^ '\n']+ as c)   {TITLE c}
   | "|author" white ([^ '\n']+ as c)   {AUTHOR c}
   | "|font" white ([^ '\n']+ as c) {FONT c}
-  | "|fontsize" white ([^ '\n']+ as c) {FONT c}
+  | "|fontsize" white (digit+ as c) {FONTSIZE (int_of_string c)}
   | '\n' { token_return lexbuf }
   | ':' (id as v)  { VAR v }
   | '#' { STRING "\\#" }
