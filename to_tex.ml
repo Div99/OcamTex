@@ -17,6 +17,17 @@ and cmd_to_tex cmd style exprs = match cmd with
     "\\begin{" ^ order ^ "}" ^ sty ^
     fold_body exprs ^
     "\n\\end{" ^ order ^ "}"
+  | "matrix" ->
+    let sty = match style with
+      | None -> "matrix"
+      | Some "()" -> "pmatrix"
+      | Some "[]" -> "bmatrix"
+      | Some "{}" -> "BMatrix"
+      | Some "||" -> "vmatrix"
+      | Some "||||" -> "Vmatrix"
+      | Some _ -> "matrix" in
+    "\\begin{" ^ sty ^ "}" ^ fold_body exprs ^
+    "\\end{" ^ sty ^ "}"
   | _ -> "\\" ^ cmd ^ " " ^ fold_body exprs
 
 and fold_body exprs =
