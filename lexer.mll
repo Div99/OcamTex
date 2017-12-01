@@ -200,7 +200,7 @@ and text = parse
   | "|m [" { begin_mode M lexbuf }
   | '\n' ('\t')* "|m [" { new_line lexbuf; begin_mode M lexbuf }
   | '\n' { new_line lexbuf; STRING "\\\\\n"}
-  | ('\n' ('\t')* as c) '|' (id as apply)  "->" ([^'\n']+ as style)
+  | ('\n' ('\t')* as c) '|' (id as apply) ' '* "->" ' '* ([^'\n']+ as style)
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, Some style)) lexbuf }
   | ('\n' ('\t')* as c) '|' (id as apply)
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, None)) lexbuf}

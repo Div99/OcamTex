@@ -17,6 +17,13 @@ and cmd_to_tex cmd style exprs = match cmd with
     "\\begin{" ^ order ^ "}" ^ sty ^
     fold_body exprs ^
     "\n\\end{" ^ order ^ "}"
+  | "image" -> (match style with
+      | Some s -> let s = Str.split (Str.regexp ", +") s in (match s with
+          | [img;width] -> "\\includegraphics[width=" ^ width ^ "\\textwidth]{"^ img ^"}"
+          | [img] -> "\\includegraphics[width=.5\\textwidth]{"^ img ^"}"
+          | _ -> "[Bad image]")
+      | None -> "[Bad image]"
+    )
   | _ -> "\\" ^ cmd ^ " " ^ fold_body exprs
 
 and fold_body exprs =
@@ -44,6 +51,8 @@ and make_head exprs = let assocs = List.fold_left (fun acc -> function
     | Some s -> s
     | None -> "12" in
   "\\documentclass[" ^ font_size ^ "]{article}\n" ^
+  "\\usepackage{graphicx}" ^
+  "\\graphicspath{ {images/} }" ^
   "\\usepackage{verbatim}\n\n" ^
   fold_head exprs ^
   "\\date{\\today}\n"
