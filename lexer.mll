@@ -173,8 +173,10 @@ let lowercase = ['a'-'z']
 rule head = parse
   | "|HEAD" { HEAD }
   | "|BODY" { end_head (); BODY }
-  | "|title" white '"'([^ '\n']+ as c)'"'   {TITLE c}
-  | "|author" white '"'([^ '\n']+ as c)'"'   {AUTHOR c}
+  | "|title" white ([^ '\n']+ as c)   {TITLE c}
+  | "|author" white ([^ '\n']+ as c)   {AUTHOR c}
+  | "|font" white ([^ '\n']+ as c) {FONT c}
+  | "|fontsize" white (digit+ as c) {FONTSIZE (int_of_string c)}
   | '\n' { token_return lexbuf }
   | ':' (id as v)  { VAR v }
   | '#' { STRING "\\#" }
@@ -211,7 +213,7 @@ and text = parse
   | "|m [" { begin_mode M lexbuf }
   | '\n' ('\t')* "|m [" { new_line lexbuf; begin_mode M lexbuf }
   | '\n' { new_line lexbuf; STRING "\\\\\n"}
-  | ('\n' ('\t')* as c) '|' (id as apply)  "->" ([^'\n']+ as style)
+  | ('\n' ('\t')* as c) '|' (id as apply) ' '* "->" ' '* ([^'\n']+ as style)
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, Some style)) lexbuf }
   | ('\n' ('\t')* as c) '|' (id as apply)
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, None)) lexbuf}

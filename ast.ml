@@ -10,7 +10,8 @@ and head_expr =
   | Margins of float
   | Linespace of space
   | Indent of float
-  | Font of string * int
+  | Font of string
+  | Fontsize of int
   | HString of string
   | HComment of string
 

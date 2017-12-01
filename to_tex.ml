@@ -9,26 +9,50 @@ let rec expr_to_tex = function
   | Cmd ((cmd, style), exprs) -> cmd_to_tex cmd style exprs
 
 and cmd_to_tex cmd style exprs = match cmd with
-  | "list" ->
-    let order = if style = None then "itemize" else "enumerate" in
-    let sty = match style with
-      | None -> ""
-      | Some s -> "[label=" ^ s ^ "]" in
-    "\\begin{" ^ order ^ "}" ^ sty ^
-    fold_body exprs ^
-    "\n\\end{" ^ order ^ "}"
-  | "matrix" ->
-    let sty = match style with
-      | None -> "matrix"
-      | Some "()" -> "pmatrix"
-      | Some "[]" -> "bmatrix"
-      | Some "{}" -> "BMatrix"
-      | Some "||" -> "vmatrix"
-      | Some "||||" -> "Vmatrix"
-      | Some _ -> "matrix" in
-    "\\begin{" ^ sty ^ "}" ^ fold_body exprs ^
-    "\\end{" ^ sty ^ "}"
+  | "list" -> list_to_tex style exprs
+  | "image" -> image_to_tex style
+  | "section" -> "\\section{" ^ fold_body exprs ^ "}"
+  | "subsection" -> "\\subsection{" ^ fold_body exprs ^ "}"
+  | "subsubsection" -> "\\subsubsection{" ^ fold_body exprs ^ "}"
+  | "matrix" -> matrix_to_tex style exprs
   | _ -> "\\" ^ cmd ^ " " ^ fold_body exprs
+
+and list_to_tex style exprs =
+  let order = if style = None then "itemize" else "enumerate" in
+  let sty = match style with
+    | None -> ""
+    | Some s -> "[label=(\\" ^ s ^ "*)]" in
+  "\\begin{" ^ order ^ "}" ^ sty ^
+  fold_body exprs ^
+  "\n\\end{" ^ order ^ "}"
+
+and matrix_to_tex style exprs =
+  let sty = match style with
+    | None -> "matrix"
+    | Some "()" -> "pmatrix"
+    | Some "[]" -> "bmatrix"
+    | Some "{}" -> "BMatrix"
+    | Some "||" -> "vmatrix"
+    | Some "||||" -> "Vmatrix"
+    | Some _ -> "matrix" in
+  "\\begin{" ^ sty ^ "}" ^ fold_body exprs ^
+  "\\end{" ^ sty ^ "}"
+
+and image_to_tex style = match style with
+  | Some s -> let s = Str.split (Str.regexp ", +") s in (match s with
+      | [img;width] -> "\\includegraphics[width=" ^ width ^ "\\textwidth]{"^ img ^"}"
+      | [img] -> "\\includegraphics[width=.5\\textwidth]{"^ img ^"}"
+      | _ -> "[Bad image]")
+  | None -> "[Bad image]"
+
+and table_to_tex style exprs =
+  let order = if style = None then "itemize" else "enumerate" in
+  let sty = match style with
+    | None -> ""
+    | Some s -> "[label=" ^ s ^ "]" in
+  "\\begin{" ^ order ^ "}" ^ sty ^
+  fold_body exprs ^
+  "\n\\end{" ^ order ^ "}"
 
 and fold_body exprs =
   List.fold_left (fun acc expr -> acc ^ expr_to_tex expr) "" exprs
@@ -37,24 +61,28 @@ and fold_head exprs =
   List.fold_left (fun acc expr -> acc ^ head_to_tex expr) "" exprs
 
 and head_to_tex = function
-  | Title s -> "\\title{" ^ s ^ "}"
-  | Author s -> "\\author{" ^ s ^ "}"
-  | Font (s, _) -> "\\usepackage[T1]{fontenc}\n" ^
-                   "\\usepackage{" ^ s ^ "}" (* tgtermes, mathptmx, txfonts *)
+  | Title s -> "\\title{" ^ s ^ "}\n"
+  | Author s -> "\\author{" ^ s ^ "}\n"
+  | Font s -> "\\usepackage[T1]{fontenc}\n" ^
+                   "\\usepackage{" ^ s ^ "}\n" (* tgtermes, mathptmx, txfonts *)
   | HString s -> s
-  | HComment s -> "\\begin{comment}\n" ^ s ^ "\n\\end{comment}"
+  | HComment s -> "\\begin{comment}\n" ^ s ^ "\n\\end{comment}\n"
   | _ -> ""
 
 and make_head exprs = let assocs = List.fold_left (fun acc -> function
     | Margins f -> ("margins", string_of_float f)::acc
     | Linespace sp -> failwith "Unimplemented"
     | Indent f -> ("indent", string_of_float f)::acc
-    | Font (_, i) -> ("font_size", string_of_int i)::acc
+    | Fontsize i -> ("font_size", string_of_int i)::acc
+(* 8pt, 9pt, 10pt, 11pt, 12pt, 14pt, 17pt, 20pt *)
     | _ -> acc) [] exprs in
   let font_size = match List.assoc_opt "font_size" assocs with
-    | Some s -> s
-    | None -> "12" in
-  "\\documentclass[" ^ font_size ^ "]{article}\n" ^
+    | Some s -> "[" ^ s ^ "pt]"
+    | None -> "" in
+  "\\documentclass" ^ font_size ^ "{article}\n" ^
+  "\\usepackage{graphicx}\n" ^
+  "\\usepackage{enumitem}\n" ^
+  "\\graphicspath{ {images/} }\n" ^
   "\\usepackage{verbatim}\n\n" ^
   fold_head exprs ^
   "\\date{\\today}\n"
