@@ -15,6 +15,8 @@ open Ast
 %token <float> MARGIN, IDENT
 %token <string> COMMENT
 %token <string> VAR
+%token <string> FONT
+%token <int> FONTSIZE
 
 %left COMMENT
 
@@ -50,6 +52,10 @@ head_expr:
     { HString $1 }
 | COMMENT
     { HComment $1 }
+| FONT
+    { Font $1 }
+| FONTSIZE
+    { Fontsize $1 }
 ;
 
 
