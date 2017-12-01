@@ -1,10 +1,13 @@
 |HEAD
 	//This is a comment.
-	|author Div
 	|title THIS IS OCAMLTEX
+	|author Kevin
+	|fontsize 14
+	|font tgtermes
 
 |BODY
-Hello World. //hello
+
+Hello World.
 Hello
 
 /* And so is this one
@@ -12,15 +15,12 @@ Hello
 */
 
 |m [ 2 + 3 = 5]
-|equation
-	2 + 3 = 5
-|matrix
 
 fdd
 
-|image -> camel.jpg, .10
+|image -> camel.jpg, .2
 
-|list
+|list -> alph
 	- Hi
 	- Bye
 	- le
@@ -29,5 +29,6 @@ fdd
 		- Bye2
 	- Hi3
 
-|section  This is a section
-|subsection
+|section This is a section
+|subsection This is a subsection
+|subsubsection This is a subsubsection
