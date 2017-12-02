@@ -236,7 +236,6 @@ and text = parse
   | "\\`" { STRING "\\`" }
   | '\\' [^ '\\' '{' '}' '$' '"' '&' ' ']
       { lex_error lexbuf "invalid escaping in text mode" }
-
   | '(' { STRING "(" }
   | [^ '"' '$' '{' '<' '\n' '\\' '#' '_' '^' '}' '%' '(' '/' '|' '[' ']']+
       { STRING(lexeme lexbuf) }
@@ -257,16 +256,10 @@ and math = parse
   | "|t [" { begin_mode T lexbuf }
   | ']' {end_mode lexbuf}
   | '\n' {new_line lexbuf; STRING "\n"}
+  | '|' (id as op)
+      { MATH_OP op}
   | ':' (id as v) { VAR v }
   | '%' { STRING "\\%" }
-  | "\\\\" { STRING "\\\\" }
-  | "\\{" { STRING "\\{" }
-  | "\\}" { STRING "\\}" }
-  | "\\$" { STRING "\\$" }
-  | "\\\"" { STRING "\"" }
-  | "\\&" { STRING "\\&" }
-  | "\\ " { STRING "\\ " }
-  | "\\_" { STRING "\\_" }
 	| ':' (['a'-'z' 'A'-'Z']+ as c) {STRING ("\\" ^ c)}
   | '\\' [^ '\\' '{' '}' '$' '"' '&' ' ' '_']
       { lex_error lexbuf "invalid escaping in math mode" }

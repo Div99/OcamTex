@@ -23,9 +23,13 @@ and expr =
   | Cmd of (string * style) * expr list
   | Var of string
   | String of string
-  | Math of expr list
+  | Math of math list
   | Text of expr list
   | Comment of string
+
+and math =
+  | Math_op of string
+  | Expr of expr
 
 (* Commands that the user can use
 and cmd =

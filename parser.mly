@@ -9,7 +9,6 @@ open Ast
 %token MATH_BEGIN MATH_END
 %token <string * Ast.style> CMD_BEGIN
 %token CMD_END
-%token <string> STYLE
 %token <string> TITLE
 %token <string> AUTHOR
 %token <float> MARGIN, IDENT
@@ -17,6 +16,7 @@ open Ast
 %token <string> VAR
 %token <string> FONT
 %token <int> FONTSIZE
+%token <string> MATH_OP
 
 %left COMMENT
 
@@ -87,6 +87,11 @@ text:
     { Var $1 }
 ;
 
+math:
+| math_expr
+    { Expr $1 }
+| MATH_OP
+    { Math_op $1 }
 math:
 | TEXT_BEGIN text* TEXT_END
     { Text $2 }
