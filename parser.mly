@@ -92,7 +92,8 @@ math:
     { Expr $1 }
 | MATH_OP
     { Math_op $1 }
-math:
+
+math_expr:
 | TEXT_BEGIN text* TEXT_END
     { Text $2 }
 | CMD_BEGIN cmd* CMD_END
