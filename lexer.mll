@@ -256,9 +256,8 @@ and math = parse
   | "|t [" { begin_mode T lexbuf }
   | ']' {end_mode lexbuf}
   | '\n' {new_line lexbuf; STRING "\n"}
-  | '|' (id as op)
-      { MATH_OP op}
   | ':' (id as v) { VAR v }
+  | '`' (id as op) { MATH_OP op }
   | '%' { STRING "\\%" }
 	| ':' (['a'-'z' 'A'-'Z']+ as c) {STRING ("\\" ^ c)}
   | '\\' [^ '\\' '{' '}' '$' '"' '&' ' ' '_']

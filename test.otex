@@ -12,8 +12,9 @@ Hello
 /* And so is this one
 ...
 */
+
 2 + 3 = 5
-|m [ 2 > 3 |leq 5]
+|m [ 2 > 3  5]
 
 fdd
 
