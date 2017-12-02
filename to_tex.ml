@@ -21,11 +21,11 @@ and list_to_tex style exprs =
   let order = if style = None then "itemize" else "enumerate" in
   (* alph, Alph, arabic, roman, Roman *)
   let sty = match style with
-    | None -> ""
-    | Some s -> "[label=(\\" ^ s ^ "*)]" in
+    | None -> "\n"
+    | Some s -> "[label=(\\" ^ s ^ "*)]\n" in
   "\\begin{" ^ order ^ "}" ^ sty ^
   fold_body exprs ^
-  "\n\\end{" ^ order ^ "}"
+  "\n\\end{" ^ order ^ "}\n"
 
 and matrix_to_tex style exprs =
   let sty = match style with
@@ -85,6 +85,7 @@ and make_head exprs = let assocs = List.fold_left (fun acc -> function
   "\\usepackage{enumitem}\n" ^
   "\\graphicspath{ {images/} }\n" ^
   "\\usepackage{verbatim}\n\n" ^
+  "\\setlength\\parindent{0pt}" ^
   fold_head exprs ^
   "\\date{\\today}\n"
 

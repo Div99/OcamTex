@@ -14,7 +14,7 @@ Hello
 ...
 */
 
-|m [ 2 + 3 = 5]
+|m [ 2 + 	\{3 = 5 & ]
 
 fdd
 
@@ -34,6 +34,7 @@ faaa
 sdf
 ds
 ff
+&
 
 |matrix -> {}
 	A	B
