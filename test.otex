@@ -19,11 +19,11 @@ fdd
 
 |image -> camel.jpg, .2
 
-|list -> alph
+|list -> (a)
 	- Hi
 	- Bye
 	- le
-	|list
+	|list -> 1.
 		- Hi2
 		- Bye2
 	- Hi3
