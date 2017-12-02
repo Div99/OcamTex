@@ -75,6 +75,18 @@
             st := rem; CMD_END
      | _ -> STRING "\n"
 
+  let get_mode2 () =
+     match !st with
+       | (m,_)::(m2,_)::_-> m2
+       | [] -> T
+
+  let check_mode letter def lexbuf=
+     match letter, get_mode2 () with
+     | "t", CMD("matrix",_) ->  "\\&"
+     | "nt", CMD("matrix",_) ->  "\\\\\t"
+     | "n" , CMD("matrix",_) ->(end_mode lexbuf; end_cmd lexbuf; def)
+     | _, _ -> def
+
   let reset_st () =
       st := []
 
@@ -212,7 +224,7 @@ rule head = parse
 and text = parse
   | "|m [" { begin_mode M lexbuf }
   | '\n' ('\t')* "|m [" { new_line lexbuf; begin_mode M lexbuf }
-  | '\n' { new_line lexbuf; STRING "\\\\\n"}
+  | '\n' { new_line lexbuf; STRING "        \\\\\n"}
   | ('\n' ('\t')* as c) '|' (id as apply) ' '* "->" ' '* ([^'\n']+ as style)
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, Some style)) lexbuf }
   | ('\n' ('\t')* as c) '|' (id as apply)
@@ -230,7 +242,7 @@ and text = parse
   | "\\}" { STRING "\\}" }
   | "\\$" { STRING "\\$" }
   | "\\\"" { STRING "\"" }
-  | "\\&" { STRING "\\&" }
+  | '&' { STRING "\\$" }
   | "\\ " { STRING "\\ " }
   | "\\'" { STRING "\\'" }
   | "\\`" { STRING "\\`" }
@@ -255,11 +267,22 @@ and comment = parse
 and math = parse
   | "|t [" { begin_mode T lexbuf }
   | ']' {end_mode lexbuf}
-  | '\n' {new_line lexbuf; STRING "\n"}
+  | '\t' { STRING "\\&"}
+  | "\n\t" {STRING (check_mode "nt" "\n\\t" lexbuf)}
+  | '\n' {new_line lexbuf; STRING (check_mode "n" "\n" lexbuf)}
   | ':' (id as v) { VAR v }
   | '`' (id as op) { MATH_OP op }
   | '%' { STRING "\\%" }
-	| ':' (['a'-'z' 'A'-'Z']+ as c) {STRING ("\\" ^ c)}
+  | "\\\\" { STRING "\\\\" }
+  | "\\{" { STRING "\\{}" }
+  | "\\}" { STRING "\\}" }
+  | "\\$" { STRING "\\$" }
+  | "\\\"" { STRING "\"" }
+  | '&' { STRING "\\$" }
+  | "\\ " { STRING "\\ " }
+  | "\\_" { STRING "\\_" }
+
+  | ':' (['a'-'z' 'A'-'Z']+ as c) {STRING ("\\" ^ c)}
   | '\\' [^ '\\' '{' '}' '$' '"' '&' ' ' '_']
       { lex_error lexbuf "invalid escaping in math mode" }
 
@@ -276,6 +299,8 @@ and math = parse
 
 and command = parse
   | "|m [" { begin_mode M lexbuf }
+  | "|matrix" { begin_mode (CMD("matrix", None)) lexbuf; open_math lexbuf}
+  | "|matrix" ' '* "->" ' '* ([^'\n']+ as style){begin_mode (CMD("matrix", Some style)) lexbuf; open_math lexbuf}
   | ('\n' ('\t')* as c) "|m" { change_indent (curr_level c) false lexbuf;
                                begin_mode M lexbuf }
   | "|t [" { begin_mode T lexbuf }
@@ -309,7 +334,7 @@ and command = parse
   | "\\}" { STRING "\\}" }
   | "\\$" { STRING "\\$" }
   | "\\\"" { STRING "\"" }
-  | "\\&" { STRING "\\&" }
+  | '&' { STRING "\\&" }
   | "\\ " { STRING "\\ " }
   | "\\'" { STRING "\\'" }
   | "\\`" { STRING "\\`" }

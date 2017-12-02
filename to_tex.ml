@@ -3,9 +3,9 @@ open Ast
 let rec expr_to_tex = function
   | String s -> s
   | Text exprs -> fold_body exprs
-  | Math exprs -> "$" ^ fold_body exprs ^ "$"
+  | Math exprs -> "$" ^ fold_math exprs ^ "$"
   | Comment s -> "\\begin{comment}\n" ^ s ^ "\n\\end{comment}"
-  | Var s -> failwith "Unimplemented"
+  | Var s -> "\\" ^ s
   | Cmd ((cmd, style), exprs) -> cmd_to_tex cmd style exprs
 
 and cmd_to_tex cmd style exprs = match cmd with
@@ -14,17 +14,34 @@ and cmd_to_tex cmd style exprs = match cmd with
   | "section" -> "\\section{" ^ fold_body exprs ^ "}"
   | "subsection" -> "\\subsection{" ^ fold_body exprs ^ "}"
   | "subsubsection" -> "\\subsubsection{" ^ fold_body exprs ^ "}"
+  | "matrix" -> matrix_to_tex style exprs
   | _ -> "\\" ^ cmd ^ " " ^ fold_body exprs
+
+and math_to_tex = function
+  | Math_op s -> "\\" ^ s
+  | Expr ex -> expr_to_tex ex
 
 and list_to_tex style exprs =
   let order = if style = None then "itemize" else "enumerate" in
   (* alph, Alph, arabic, roman, Roman *)
   let sty = match style with
-    | None -> ""
-    | Some s -> "[" ^ s ^ "]" in
+    | None -> "\n"
+    | Some s -> "[label=(\\" ^ s ^ "*)]\n" in
   "\\begin{" ^ order ^ "}" ^ sty ^
   fold_body exprs ^
-  "\n\\end{" ^ order ^ "}"
+  "\n\\end{" ^ order ^ "}\n"
+
+and matrix_to_tex style exprs =
+  let sty = match style with
+    | None -> "matrix"
+    | Some "()" -> "pmatrix"
+    | Some "[]" -> "bmatrix"
+    | Some "{}" -> "BMatrix"
+    | Some "||" -> "vmatrix"
+    | Some "||||" -> "Vmatrix"
+    | Some _ -> "matrix" in
+  "\\begin{" ^ sty ^ "}" ^ fold_body exprs ^
+  "\\end{" ^ sty ^ "}"
 
 and image_to_tex style = match style with
   | Some s -> let s = Str.split (Str.regexp ", +") s in (match s with
@@ -52,6 +69,9 @@ and fold_body exprs =
 and fold_head exprs =
   List.fold_left (fun acc expr -> acc ^ head_to_tex expr) "" exprs
 
+and fold_math exprs =
+  List.fold_left (fun acc expr -> acc ^ math_to_tex expr) "" exprs
+
 and head_to_tex = function
   | Title s -> "\\title{" ^ s ^ "}\n"
   | Author s -> "\\author{" ^ s ^ "}\n"
@@ -76,6 +96,7 @@ and make_head exprs = let assocs = List.fold_left (fun acc -> function
   "\\usepackage{enumerate}\n" ^
   "\\graphicspath{ {images/} }\n" ^
   "\\usepackage{verbatim}\n\n" ^
+  "\\setlength\\parindent{0pt}" ^
   fold_head exprs ^
   "\\date{\\today}\n"
 
