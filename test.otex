@@ -33,11 +33,6 @@ faaa
 sdf
 ds
 ff
-&
-
-|matrix -> {}
-	A	B
-	C	D
 
 |newpage
 
@@ -45,10 +40,7 @@ ff
 |subsection This is a subsection
 |subsubsection This is a subsubsection
 
-|latex
 
-
-|end
 |list
 
 
