@@ -3,7 +3,7 @@ open Ast
 let rec expr_to_tex = function
   | String s -> s
   | Text exprs -> fold_body exprs
-  | Math exprs -> "$" ^ fold_body exprs ^ "$"
+  | Math exprs -> "$" ^ fold_math exprs ^ "$"
   | Comment s -> "\\begin{comment}\n" ^ s ^ "\n\\end{comment}"
   | Var s -> failwith "Unimplemented"
   | Cmd ((cmd, style), exprs) -> cmd_to_tex cmd style exprs
@@ -15,6 +15,10 @@ and cmd_to_tex cmd style exprs = match cmd with
   | "subsection" -> "\\subsection{" ^ fold_body exprs ^ "}"
   | "subsubsection" -> "\\subsubsection{" ^ fold_body exprs ^ "}"
   | _ -> "\\" ^ cmd ^ " " ^ fold_body exprs
+
+and math_to_tex = function
+  | Math_op s -> s
+  | Expr ex -> expr_to_tex ex
 
 and list_to_tex style exprs =
   let order = if style = None then "itemize" else "enumerate" in
@@ -51,6 +55,9 @@ and fold_body exprs =
 
 and fold_head exprs =
   List.fold_left (fun acc expr -> acc ^ head_to_tex expr) "" exprs
+
+and fold_math exprs =
+  List.fold_left (fun acc expr -> acc ^ math_to_tex expr) "" exprs
 
 and head_to_tex = function
   | Title s -> "\\title{" ^ s ^ "}\n"
