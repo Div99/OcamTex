@@ -5,8 +5,12 @@ let rec expr_to_tex = function
   | Text exprs -> fold_body exprs
   | Math exprs -> "$" ^ fold_math exprs ^ "$"
   | Comment s -> "\\begin{comment}\n" ^ s ^ "\n\\end{comment}"
-  | Var s -> failwith "Unimplemented"
+  | Var s -> "\\" ^ var_to_tex s
   | Cmd ((cmd, style), exprs) -> cmd_to_tex cmd style exprs
+
+and var_to_tex v = match v with
+  | "inf" -> "infty"
+  | _ -> v
 
 and cmd_to_tex cmd style exprs = match cmd with
   | "list" -> list_to_tex style exprs
