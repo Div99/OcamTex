@@ -13,8 +13,7 @@ Hello
 ...
 */
 
-2 + 3 = 5
-|m [ 2 > 3  5]
+|m [2 = 4^4]
 
 fdd
 
@@ -48,11 +47,6 @@ ds
 |subsection This is a subsection
 |subsubsection This is a subsubsection
 
-|latex
-
-
-|end
-|list
 
 
 |newpage

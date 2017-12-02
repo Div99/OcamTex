@@ -272,6 +272,9 @@ and math = parse
   | '\n' {new_line lexbuf; STRING (check_mode "n" "\n" lexbuf)}
   | ':' (id as v) { VAR v }
   | '`' (id as op) { MATH_OP op }
+  | "<=" { MATH_OP "leq" }
+  | ">=" { MATH_OP "geq" }
+  | "!=" { MATH_OP "ne" }
   | '%' { STRING "\\%" }
   | "\\\\" { STRING "\\\\" }
   | "\\{" { STRING "\\{}" }
@@ -281,7 +284,7 @@ and math = parse
   | '&' { STRING "\\$" }
   | "\\ " { STRING "\\ " }
   | "\\_" { STRING "\\_" }
-
+  | ' ' { STRING " " }
   | ':' (['a'-'z' 'A'-'Z']+ as c) {STRING ("\\" ^ c)}
   | '\\' [^ '\\' '{' '}' '$' '"' '&' ' ' '_']
       { lex_error lexbuf "invalid escaping in math mode" }
@@ -292,7 +295,7 @@ and math = parse
         end_comment () }
   | '(' { STRING "(" }
 
-  | [^ '"' '$' '{' '\n' '\\' '}' '%' '(' '/' '|' '[' ']' ':']+ { STRING(lexeme lexbuf) }
+  | [^ '!' ' ' '"' '$' '{' '\n' '\\' '}' '%' '(' '|' '[' ']' ':' '`']+ { STRING(lexeme lexbuf) }
   | (_ as c) { lex_error lexbuf "Unexpected char in math mode '%c'" c}
   | '\n' (' ')+ {lex_error lexbuf "non-tab indent"}
   | eof { lex_error lexbuf "unexpected end of file in math mode" }
