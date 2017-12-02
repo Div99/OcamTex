@@ -46,14 +46,18 @@ and image_to_tex style = match style with
       | _ -> "[Bad image]")
   | None -> "[Bad image]"
 
+and table_gen_col = function
+  | 0 -> ""
+  | 1 -> "|c|"
+  | n -> "|c" ^ (table_gen_col (n-1))
+
 and table_to_tex style exprs =
-  let order = if style = None then "itemize" else "enumerate" in
-  let sty = match style with
-    | None -> ""
-    | Some s -> "[label=" ^ s ^ "]" in
-  "\\begin{" ^ order ^ "}" ^ sty ^
+  let columns = (match int_of_string style with
+    | n -> n
+    | _ -> 1) in
+  "\\begin{tabular}" ^ (table_gen_col columns) ^
   fold_body exprs ^
-  "\n\\end{" ^ order ^ "}"
+  "\n\\end{tabular}"
 
 and fold_body exprs =
   List.fold_left (fun acc expr -> acc ^ expr_to_tex expr) "" exprs
@@ -82,7 +86,7 @@ and make_head exprs = let assocs = List.fold_left (fun acc -> function
     | None -> "" in
   "\\documentclass" ^ font_size ^ "{article}\n" ^
   "\\usepackage{graphicx}\n" ^
-  "\\usepackage{enumitem}\n" ^
+  "\\usepackage{enumerate}\n" ^
   "\\graphicspath{ {images/} }\n" ^
   "\\usepackage{verbatim}\n\n" ^
   "\\setlength\\parindent{0pt}" ^

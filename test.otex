@@ -3,7 +3,6 @@
 	|title THIS IS OCAMLTEX
 	|author Kevin
 	|fontsize 14
-	|font tgtermes
 
 |BODY
 
@@ -13,18 +12,18 @@ Hello
 /* And so is this one
 ...
 */
-
-|m [ 2 + 	\{3 = 5 & ]
+2 + 3 = 5
+|m [ 2 > 3 |leq 5]
 
 fdd
 
 |image -> camel.jpg, .2
 
-|list -> alph
+|list -> (a)
 	- Hi
 	- Bye
 	- le
-	|list
+	|list -> 1.
 		- Hi2
 		- Bye2
 	- Hi3
@@ -45,3 +44,12 @@ ff
 |section This is a section
 |subsection This is a subsection
 |subsubsection This is a subsubsection
+
+|latex
+
+
+|end
+|list
+
+
+|newpage
