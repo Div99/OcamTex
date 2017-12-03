@@ -15,10 +15,11 @@ and var_to_tex v = match v with
 and cmd_to_tex cmd style exprs = match cmd with
   | "list" -> list_to_tex style exprs
   | "image" -> image_to_tex style
-  | "section" -> "\\section{" ^ fold_body exprs ^ "}"
-  | "subsection" -> "\\subsection{" ^ fold_body exprs ^ "}"
-  | "subsubsection" -> "\\subsubsection{" ^ fold_body exprs ^ "}"
+  | "section" -> "\\section{" ^ fold_body exprs ^ "}\n"
+  | "subsection" -> "\\subsection{" ^ fold_body exprs ^ "}\n"
+  | "subsubsection" -> "\\subsubsection{" ^ fold_body exprs ^ "}\n"
   | "matrix" -> matrix_to_tex style exprs
+  | "table" -> table_to_tex style exprs
   | _ -> "\\" ^ cmd ^ " " ^ fold_body exprs
 
 and math_to_tex = function
@@ -59,12 +60,20 @@ and table_gen_col = function
   | 1 -> "|c|"
   | n -> "|c" ^ (table_gen_col (n-1))
 
+and tabs_to_and = Str.global_replace (Str.regexp "\t") " & "
+
+and nl_to_dash s = Str.replace_first (Str.regexp "\\\\\\\\\n")
+"\n"
+(Str.global_replace (Str.regexp "\n") "\\\\\\\n\\hline\n" s)
+
 and table_to_tex style exprs =
-  let columns = (match int_of_string style with
-    | n -> n
-    | _ -> 1) in
-  "\\begin{tabular}" ^ (table_gen_col columns) ^
-  fold_body exprs ^
+  let columns = (match style with
+    | Some style -> (match int_of_string style with
+      | n -> n
+      | exception e -> 1)
+    | None -> 1) in
+  "\\begin{tabular}" ^ "{" ^ (table_gen_col columns) ^ "}" ^
+  (nl_to_dash (tabs_to_and (fold_body exprs))) ^
   "\n\\end{tabular}"
 
 and fold_body exprs =
