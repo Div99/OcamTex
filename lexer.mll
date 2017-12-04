@@ -318,8 +318,6 @@ and math = parse
 
 and command = parse
   | "|m [" { begin_mode M lexbuf }
-  | "|matrix" { begin_mode (CMD("matrix", None)) lexbuf; open_math lexbuf}
-  | "|matrix" ' '* "->" ' '* ([^'\n']+ as style){begin_mode (CMD("matrix", Some style)) lexbuf; open_math lexbuf}
   | "```" { latex lexbuf }
   | '\n' ('\t')* "```" { new_line lexbuf; latex lexbuf }
   | ('\n' ('\t')* as c) "|m" { change_indent (curr_level c) false lexbuf;

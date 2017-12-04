@@ -41,12 +41,12 @@ and matrix_to_tex style exprs =
     | None -> "matrix"
     | Some "()" -> "pmatrix"
     | Some "[]" -> "bmatrix"
-    | Some "{}" -> "BMatrix"
+    | Some "{}" -> "Bmatrix"
     | Some "||" -> "vmatrix"
     | Some "||||" -> "Vmatrix"
     | Some _ -> "matrix" in
-  "\\begin{" ^ sty ^ "}" ^ fold_body exprs ^
-  "\\end{" ^ sty ^ "}"
+  "$\\begin{" ^ sty ^ "}" ^ nlt_to_slash (tabs_to_and (fold_body exprs)) ^
+  "\\end{" ^ sty ^ "}$"
 
 and image_to_tex style = match style with
   | Some s -> let s = Str.split (Str.regexp ", +") s in (match s with
@@ -61,6 +61,10 @@ and table_gen_col = function
   | n -> "|c" ^ (table_gen_col (n-1))
 
 and tabs_to_and = Str.global_replace (Str.regexp "\t") " & "
+
+and nlt_to_slash s = Str.replace_first (Str.regexp "\\\\\\\\\n")
+"\n"
+(Str.global_replace (Str.regexp "\n") "\\\\\\\n\n" s)
 
 and nl_to_dash s = Str.replace_first (Str.regexp "\\\\\\\\\n")
 "\n"
@@ -88,7 +92,7 @@ and fold_math exprs =
 and head_to_tex = function
   | Title s -> "\\title{" ^ s ^ "}\n"
   | Author s -> "\\author{" ^ s ^ "}\n"
-  | Font s -> "\\usepackage[T1]{fontenc}\n" ^
+  | Font s -> "\\usepackage[T1]{fontenc}\n " ^
               "\\usepackage{" ^ s ^ "}\n" (* tgtermes, mathptmx, txfonts *)
   | HComment s -> "\\begin{comment}\n" ^ s ^ "\n\\end{comment}\n"
   | HString s -> s
@@ -107,6 +111,7 @@ and make_head exprs = let assocs = List.fold_left (fun acc -> function
   "\\documentclass" ^ font_size ^ "{article}\n" ^
   "\\usepackage{graphicx}\n" ^
   "\\usepackage{enumerate}\n" ^
+  "\\usepackage{amsmath}\n"^
   "\\graphicspath{ {images/} }\n" ^
   "\\usepackage{verbatim}\n\n" ^
   "\\setlength\\parindent{0pt}" ^

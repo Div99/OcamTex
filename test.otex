@@ -35,6 +35,11 @@ ds
 
 &
 
+|matrix -> {}
+	A	B
+	C	D
+
+
 |newpage
 
 |section This is a section
