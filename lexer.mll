@@ -142,6 +142,13 @@
     Buffer.reset comment_buf;
     COMMENT s
 
+  let latex_buf = Buffer.create 128
+
+  let end_latex () =
+    let s = Buffer.contents latex_buf in
+    Buffer.reset latex_buf;
+    LATEX s
+
   let token_return lexbuf =
     new_line lexbuf;
     STRING "\n" (* to keep the line count correct *)
@@ -189,6 +196,7 @@ rule head = parse
   | "|author" white ([^ '\n' '/']+ as c)   {AUTHOR c}
   | "|font" white ([^ '\n']+ as c) {FONT c}
   | "|fontsize" white (digit+ as c) {FONTSIZE (int_of_string c)}
+  | "```" { latex lexbuf }
   | '\n' { token_return lexbuf }
   | ':' (id as v)  { VAR v }
   | '#' { STRING "\\#" }
@@ -224,7 +232,8 @@ rule head = parse
 and text = parse
   | "|m [" { begin_mode M lexbuf }
   | '\n' ('\t')* "|m [" { new_line lexbuf; begin_mode M lexbuf }
-  | '\n' { new_line lexbuf; STRING "\\\\\n"}
+  | '\n' { new_line lexbuf; STRING "        \\\\\n"}
+  | "```" { latex lexbuf }
   | ('\n' ('\t')* as c) '|' (id as apply) ' '* "->" ' '* ([^'\n']+ as style)
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, Some style)) lexbuf }
   | ('\n' ('\t')* as c) '|' (id as apply)
@@ -264,6 +273,13 @@ and comment = parse
   | (_ as c) { Buffer.add_char comment_buf c; comment lexbuf }
   | eof { lex_error lexbuf "unexpected end of file in comment" }
 
+and latex = parse
+  | "```" { try end_latex () with Exit -> latex lexbuf }
+  | '\n' { new_line lexbuf; Buffer.add_char latex_buf '\n'; latex lexbuf }
+  | "\\\"" { Buffer.add_char latex_buf '"'; latex lexbuf }
+  | (_ as c) { Buffer.add_char latex_buf c; latex lexbuf }
+  | eof { lex_error lexbuf "unexpected end of file in latex" }
+
 and math = parse
   | "|t [" { begin_mode T lexbuf }
   | ']' {end_mode lexbuf}
@@ -271,6 +287,10 @@ and math = parse
   | "\n\t" {STRING (check_mode "nt" "\n\\t" lexbuf)}
   | '\n' {new_line lexbuf; STRING (check_mode "n" "\n" lexbuf)}
   | ':' (id as v) { VAR v }
+  | '`' (id as op) { MATH_OP op }
+  | "<=" { MATH_OP "leq" }
+  | ">=" { MATH_OP "geq" }
+  | "!=" { MATH_OP "ne" }
   | '%' { STRING "\\%" }
   | "\\\\" { STRING "\\\\" }
   | "\\{" { STRING "\\{}" }
@@ -279,7 +299,7 @@ and math = parse
   | "\\\"" { STRING "\"" }
   | "\\ " { STRING "\\ " }
   | "\\_" { STRING "\\_" }
-
+  | ' ' { STRING " " }
   | ':' (['a'-'z' 'A'-'Z']+ as c) {STRING ("\\" ^ c)}
   | '\\' [^ '\\' '{' '}' '$' '"' '&' ' ' '_']
       { lex_error lexbuf "invalid escaping in math mode" }
@@ -288,9 +308,10 @@ and math = parse
   | "//" ([^'\n' '\r']* as c)
       { start_comment (); Buffer.add_string comment_buf c;
         end_comment () }
+  | "```" { latex lexbuf }
   | '(' { STRING "(" }
 
-  | [^ '"' '$' '{' '\n' '\t' '\\' '}' '%' '(' '/' '|' '[' ']' ':']+ { STRING(lexeme lexbuf) }
+  | [^ '!' ' ' '"' '$' '{' '\n' '\\' '}' '%' '(' '|' '[' ']' ':' '`' ]+ { STRING(lexeme lexbuf) }
   | (_ as c) { lex_error lexbuf "Unexpected char in math mode '%c'" c}
   | '\n' (' ')+ {lex_error lexbuf "non-tab indent"}
   | eof { lex_error lexbuf "unexpected end of file in math mode" }
@@ -299,6 +320,8 @@ and command = parse
   | "|m [" { begin_mode M lexbuf }
   | "|matrix" { begin_mode (CMD("matrix", None)) lexbuf; open_math lexbuf}
   | "|matrix" ' '* "->" ' '* ([^'\n']+ as style){begin_mode (CMD("matrix", Some style)) lexbuf; open_math lexbuf}
+  | "```" { latex lexbuf }
+  | '\n' ('\t')* "```" { new_line lexbuf; latex lexbuf }
   | ('\n' ('\t')* as c) "|m" { change_indent (curr_level c) false lexbuf;
                                begin_mode M lexbuf }
   | "|t [" { begin_mode T lexbuf }

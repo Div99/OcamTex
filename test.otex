@@ -12,9 +12,8 @@ Hello
 /* And so is this one
 ...
 */
-|m [2 + 3 = & 5]
 
-|m [ 2 > 3  	  5]
+|m [2 = 4^4]
 
 fdd
 
@@ -33,7 +32,7 @@ dfsd
 faaa
 sdf
 ds
-ff
+
 &
 
 |newpage
@@ -42,7 +41,14 @@ ff
 |subsection This is a subsection
 |subsubsection This is a subsubsection
 
-|list
-
+|table -> 3
+	Hi	lol	wtf
+	bob	is	awesome
 
 |newpage
+
+```
+
+\LaTeX
+
+```

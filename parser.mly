@@ -13,12 +13,14 @@ open Ast
 %token <string> AUTHOR
 %token <float> MARGIN, IDENT
 %token <string> COMMENT
+%token <string> LATEX
 %token <string> VAR
 %token <string> FONT
 %token <int> FONTSIZE
 %token <string> MATH_OP
 
 %left COMMENT
+%left LATEX
 
 %start <Ast.doc> doc
 
@@ -52,6 +54,8 @@ head_expr:
     { HString $1 }
 | COMMENT
     { HComment $1 }
+| LATEX
+    { HString $1 }
 | FONT
     { Font $1 }
 | FONTSIZE
@@ -70,6 +74,8 @@ expr:
     { String $1 }
 | COMMENT
     { Comment $1 }
+| LATEX
+    { String $1 }
 | VAR
     { Var $1 }
 ;
@@ -83,6 +89,8 @@ text:
     { String $1 }
 | COMMENT
     { Comment $1 }
+| LATEX
+    { String $1 }
 | VAR
     { Var $1 }
 ;
@@ -102,6 +110,8 @@ math_expr:
     { String $1 }
 | COMMENT
     { Comment $1 }
+| LATEX
+    { String $1 }
 | VAR
     { Var $1 }
 ;
@@ -117,6 +127,8 @@ cmd:
     { String $1 }
 | COMMENT
     { Comment $1 }
+| LATEX
+    { String $1 }
 | VAR
     { Var $1 }
 ;
