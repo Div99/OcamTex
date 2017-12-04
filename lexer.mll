@@ -277,7 +277,6 @@ and math = parse
   | "\\}" { STRING "\\}" }
   | "\\$" { STRING "\\$" }
   | "\\\"" { STRING "\"" }
-  | '&' { STRING "\\$" }
   | "\\ " { STRING "\\ " }
   | "\\_" { STRING "\\_" }
 
@@ -291,7 +290,7 @@ and math = parse
         end_comment () }
   | '(' { STRING "(" }
 
-  | [^ '"' '$' '{' '\n' '\\' '}' '%' '(' '/' '|' '[' ']' ':']+ { STRING(lexeme lexbuf) }
+  | [^ '"' '$' '{' '\n' '\t' '\\' '}' '%' '(' '/' '|' '[' ']' ':']+ { STRING(lexeme lexbuf) }
   | (_ as c) { lex_error lexbuf "Unexpected char in math mode '%c'" c}
   | '\n' (' ')+ {lex_error lexbuf "non-tab indent"}
   | eof { lex_error lexbuf "unexpected end of file in math mode" }

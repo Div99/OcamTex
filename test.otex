@@ -12,8 +12,9 @@ Hello
 /* And so is this one
 ...
 */
-2 + 3 = 5
-|m [ 2 > 3 |leq 5]
+|m [2 + 3 = & 5]
+
+|m [ 2 > 3  	  5]
 
 fdd
 
@@ -35,20 +36,12 @@ ds
 ff
 &
 
-|matrix -> {}
-	A	B
-	C	D
-
 |newpage
 
 |section This is a section
 |subsection This is a subsection
 |subsubsection This is a subsubsection
 
-|latex
-
-
-|end
 |list
 
 
