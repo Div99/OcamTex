@@ -104,11 +104,15 @@ and make_head exprs = let assocs = List.fold_left (fun acc -> function
     | Indent f -> ("indent", string_of_float f)::acc
     | Fontsize i -> ("font_size", string_of_int i)::acc
 (* 8pt, 9pt, 10pt, 11pt, 12pt, 14pt, 17pt, 20pt *)
+    | Date s -> ("date", s)::acc
     | _ -> acc) [] exprs in
   let font_size = match List.assoc_opt "font_size" assocs with
     | Some s -> "[" ^ s ^ "pt]"
     | None -> "" in
-  "\\documentclass" ^ font_size ^ "{article}\n" ^
+  let author = match List.assoc_opt "date" assocs with
+    | Some s -> s
+    | None -> "\\today" in
+  "\\documentclass" ^ font_size ^ "{extarticle}\n" ^
   "\\usepackage{graphicx}\n" ^
   "\\usepackage{enumerate}\n" ^
   "\\usepackage{amsmath}\n"^
@@ -116,7 +120,7 @@ and make_head exprs = let assocs = List.fold_left (fun acc -> function
   "\\usepackage{verbatim}\n\n" ^
   "\\setlength\\parindent{0pt}" ^
   fold_head exprs ^
-  "\\date{\\today}\n"
+  "\\date{" ^ author ^ "}\n"
 
 and with_newline s =
   let f x = x ^ "   \\\\" in

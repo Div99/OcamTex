@@ -11,6 +11,7 @@ open Ast
 %token CMD_END
 %token <string> TITLE
 %token <string> AUTHOR
+%token <string> DATE
 %token <float> MARGIN, IDENT
 %token <string> COMMENT
 %token <string> LATEX
@@ -46,6 +47,8 @@ head_expr:
     { Title $1 }
 | AUTHOR
     { Author $1 }
+| DATE
+    { Date $1 }
 | MARGIN
     { Margins $1 }
 | IDENT

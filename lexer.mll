@@ -192,8 +192,9 @@ let lowercase = ['a'-'z']
 rule head = parse
   | "|HEAD" { HEAD }
   | "|BODY" { end_head (); BODY }
-  | "|title" white ([^ '\n' '/']+ as c)   {TITLE c}
-  | "|author" white ([^ '\n' '/']+ as c)   {AUTHOR c}
+  | "|title" white ([^ '\n' '/']+ as c) {TITLE c}
+  | "|author" white ([^ '\n' '/']+ as c) {AUTHOR c}
+  | "|date" white ([^ '\n' '/']+ as c) {DATE c}
   | "|font" white ([^ '\n']+ as c) {FONT c}
   | "|fontsize" white (digit+ as c) {FONTSIZE (int_of_string c)}
   | "```" { latex lexbuf }
