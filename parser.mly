@@ -12,7 +12,8 @@ open Ast
 %token <string> TITLE
 %token <string> AUTHOR
 %token <string> DATE
-%token <float> MARGIN, IDENT
+%token <float> MARGIN
+%token LANDSCAPE
 %token <string> COMMENT
 %token <string> LATEX
 %token <string> VAR
@@ -50,9 +51,9 @@ head_expr:
 | DATE
     { Date $1 }
 | MARGIN
-    { Margins $1 }
-| IDENT
-    { Indent $1 }
+    { Margin $1 }
+| LANDSCAPE
+    { Landscape }
 | STRING
     { HString $1 }
 | COMMENT

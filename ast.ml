@@ -8,9 +8,8 @@ and head_expr =
   | Title of string
   | Author of string
   | Date of string
-  | Margins of float
-  | Linespace of space
-  | Indent of float
+  | Margin of float
+  | Landscape
   | Font of string
   | Fontsize of int
   | HString of string

@@ -99,12 +99,11 @@ and head_to_tex = function
   | _ -> ""
 
 and make_head exprs = let assocs = List.fold_left (fun acc -> function
-    | Margins f -> ("margins", string_of_float f)::acc
-    | Linespace sp -> failwith "Unimplemented"
-    | Indent f -> ("indent", string_of_float f)::acc
+    | Margin f -> ("margin", string_of_float f)::acc
     | Fontsize i -> ("font_size", string_of_int i)::acc
 (* 8pt, 9pt, 10pt, 11pt, 12pt, 14pt, 17pt, 20pt *)
     | Date s -> ("date", s)::acc
+    | Landscape -> ("landscape,", "")::acc
     | _ -> acc) [] exprs in
   let font_size = match List.assoc_opt "font_size" assocs with
     | Some s -> "[" ^ s ^ "pt]"
@@ -112,13 +111,21 @@ and make_head exprs = let assocs = List.fold_left (fun acc -> function
   let author = match List.assoc_opt "date" assocs with
     | Some s -> s
     | None -> "\\today" in
+  let landscape = match List.assoc_opt "landscape," assocs with
+    | Some _ -> "landscape, "
+    | None -> "" in
+  let margin = match List.assoc_opt "margin" assocs with
+    | Some s -> "margin=" ^ s ^ "in"
+    | None -> "" in
   "\\documentclass" ^ font_size ^ "{extarticle}\n" ^
   "\\usepackage{graphicx}\n" ^
   "\\usepackage{enumerate}\n" ^
   "\\usepackage{amsmath}\n"^
   "\\graphicspath{ {images/} }\n" ^
-  "\\usepackage{verbatim}\n\n" ^
-  "\\setlength\\parindent{0pt}" ^
+  "\\usepackage{verbatim}\n" ^
+  "\\usepackage{geometry}\n" ^
+  "\\geometry{legalpaper, " ^ landscape ^ margin ^ "}\n" ^
+  "\\setlength\\parindent{0pt}\n" ^
   fold_head exprs ^
   "\\date{" ^ author ^ "}\n"
 
