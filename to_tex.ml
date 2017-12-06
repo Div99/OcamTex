@@ -22,8 +22,13 @@ and cmd_to_tex cmd style exprs = match cmd with
   | _ -> "\\" ^ cmd ^ " " ^ fold_body exprs
 
 and math_to_tex = function
-  | Math_op s -> "\\" ^ s
+  | Math_op s -> "\\" ^ math_op_to_tex s
   | Expr ex -> expr_to_tex ex
+
+and math_op_to_tex = function
+  | Leaf_op s -> s
+  | Unary_op (s, e1) -> s ^ "{" ^ math_to_tex e1 ^ "}"
+  | Binary_op (s, e1, e2) -> s ^ "{" ^ math_to_tex e1 ^ "{" ^ math_to_tex e2  ^ "}"
 
 and list_to_tex style exprs =
   let order = if style = None then "itemize" else "enumerate" in

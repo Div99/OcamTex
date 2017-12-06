@@ -16,8 +16,8 @@ open Ast
 %token <string> VAR
 %token <string> FONT
 %token <int> FONTSIZE
-%token <string> MATH_OP
-
+%token <string> LEAF_OP, UNARY_OP, BINARY_OP
+%token OPENPARA, CLOSEPARA
 %left COMMENT
 
 %start <Ast.doc> doc
@@ -90,7 +90,7 @@ text:
 math:
 | math_expr
     { Expr $1 }
-| MATH_OP
+| math_op
     { Math_op $1 }
 
 math_expr:
@@ -106,6 +106,13 @@ math_expr:
     { Var $1 }
 ;
 
+math_op:
+| LEAF_OP
+    { Leaf_op $1 }
+| UNARY_OP OPENPARA math CLOSEPARA
+    { Unary_op ($1,$3)}
+| BINARY_OP OPENPARA math OPENPARA math CLOSEPARA
+    { Binary_op ($1,$3, $5)}
 cmd:
 | TEXT_BEGIN text* TEXT_END
     { Text $2 }

@@ -1,7 +1,7 @@
 |HEAD
 	//This is a comment.
 	|title THIS IS OCAMLTEX
-	|author Kevin
+	|author Divyansh
 	|fontsize 14
 
 |BODY
@@ -12,8 +12,8 @@ Hello
 /* And so is this one
 ...
 */
-
-|m [2 = 4^4]
+|m [ \newpage ]
+|m [`lim_{x\to\infty}  `binom{n}{k} = `frac{n!}{k!(n-k)!} `ngtr 4]
 
 fdd
 

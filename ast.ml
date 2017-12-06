@@ -28,8 +28,13 @@ and expr =
   | Comment of string
 
 and math =
-  | Math_op of string
+  | Math_op of math_op
   | Expr of expr
+
+and math_op =
+  | Leaf_op of string
+  | Unary_op of string * math
+  | Binary_op of string * math * math
 
 (* Commands that the user can use
 and cmd =

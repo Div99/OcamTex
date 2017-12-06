@@ -177,9 +177,7 @@ let digit = ['0'-'9']
 let int = '-'? digit+
 let letter = ['a'-'z' 'A'-'Z']
 let id = ('_' | letter) ('_' | letter | digit)*
-
-let newline = ('\013'* '\010')
-let blank = [' ' '\009' '\012']
+let op = ('_' | letter)+
 let lowercase = ['a'-'z']
 
 rule head = parse
@@ -271,10 +269,13 @@ and math = parse
   | "\n\t" {STRING (check_mode "nt" "\n\\t" lexbuf)}
   | '\n' {new_line lexbuf; STRING (check_mode "n" "\n" lexbuf)}
   | ':' (id as v) { VAR v }
-  | '`' (id as op) { MATH_OP op }
-  | "<=" { MATH_OP "leq" }
-  | ">=" { MATH_OP "geq" }
-  | "!=" { MATH_OP "ne" }
+  | '`' (op as n) { LEAF_OP n }
+  | "<=" { LEAF_OP "leq" }
+  | ">=" { LEAF_OP "geq" }
+  | "!=" { LEAF_OP "ne" }
+  | "!<" { LEAF_OP "nless" }
+  | "!>" { LEAF_OP "ngtr" }
+  | '`' (op as n) '{'
   | '%' { STRING "\\%" }
   | "\\\\" { STRING "\\\\" }
   | "\\{" { STRING "\\{}" }
@@ -286,17 +287,13 @@ and math = parse
   | "\\_" { STRING "\\_" }
   | ' ' { STRING " " }
   | ':' (['a'-'z' 'A'-'Z']+ as c) {STRING ("\\" ^ c)}
-  | '\\' [^ '\\' '{' '}' '$' '"' '&' ' ' '_']
-      { lex_error lexbuf "invalid escaping in math mode" }
-
   | "/*" { start_comment (); comment lexbuf }
   | "//" ([^'\n' '\r']* as c)
       { start_comment (); Buffer.add_string comment_buf c;
         end_comment () }
-  | '(' { STRING "(" }
-
-  | [^ '!' ' ' '"' '$' '{' '\n' '\\' '}' '%' '(' '|' '[' ']' ':' '`']+ { STRING(lexeme lexbuf) }
-  | (_ as c) { lex_error lexbuf "Unexpected char in math mode '%c'" c}
+  | '`' {lex_error lexbuf "invalid char in math mode" '`'}
+  | '[' {lex_error lexbuf "invalid char in math mode" '['}
+  | _  { STRING (lexeme lexbuf) }
   | '\n' (' ')+ {lex_error lexbuf "non-tab indent"}
   | eof { lex_error lexbuf "unexpected end of file in math mode" }
 
