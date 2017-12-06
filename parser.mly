@@ -11,14 +11,18 @@ open Ast
 %token CMD_END
 %token <string> TITLE
 %token <string> AUTHOR
-%token <float> MARGIN, IDENT
+%token <string> DATE
+%token <float> MARGIN
+%token LANDSCAPE
 %token <string> COMMENT
+%token <string> LATEX
 %token <string> VAR
 %token <string> FONT
 %token <int> FONTSIZE
 %token <string> LEAF_OP, UNARY_OP, BINARY_OP
 %token OPENPARA, CLOSEPARA
 %left COMMENT
+%left LATEX
 
 %start <Ast.doc> doc
 
@@ -44,14 +48,18 @@ head_expr:
     { Title $1 }
 | AUTHOR
     { Author $1 }
+| DATE
+    { Date $1 }
 | MARGIN
-    { Margins $1 }
-| IDENT
-    { Indent $1 }
+    { Margin $1 }
+| LANDSCAPE
+    { Landscape }
 | STRING
     { HString $1 }
 | COMMENT
     { HComment $1 }
+| LATEX
+    { HString $1 }
 | FONT
     { Font $1 }
 | FONTSIZE
@@ -70,6 +78,8 @@ expr:
     { String $1 }
 | COMMENT
     { Comment $1 }
+| LATEX
+    { String $1 }
 | VAR
     { Var $1 }
 ;
@@ -83,6 +93,8 @@ text:
     { String $1 }
 | COMMENT
     { Comment $1 }
+| LATEX
+    { String $1 }
 | VAR
     { Var $1 }
 ;
@@ -102,6 +114,8 @@ math_expr:
     { String $1 }
 | COMMENT
     { Comment $1 }
+| LATEX
+    { String $1 }
 | VAR
     { Var $1 }
 ;
@@ -124,6 +138,8 @@ cmd:
     { String $1 }
 | COMMENT
     { Comment $1 }
+| LATEX
+    { String $1 }
 | VAR
     { Var $1 }
 ;

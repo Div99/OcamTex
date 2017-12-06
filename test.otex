@@ -3,6 +3,8 @@
 	|title THIS IS OCAMLTEX
 	|author Divyansh
 	|fontsize 14
+	|font tgtermes
+	|margins 1
 
 |BODY
 
@@ -35,11 +37,10 @@ ds
 
 &
 
-/*
 |matrix -> {}
 	A	B
 	C	D
-*/
+
 
 |newpage
 
@@ -47,6 +48,14 @@ ds
 |subsection This is a subsection
 |subsubsection This is a subsubsection
 
-
+|table -> 3
+	Hi	lol	wtf
+	bob	is	awesome
 
 |newpage
+
+```
+
+\LaTeX
+
+```

@@ -15,3 +15,4 @@ parse:
 
 clean:
 		ocamlbuild -clean
+		rm *.aux *.log *.tex *.pdf

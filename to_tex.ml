@@ -15,10 +15,11 @@ and var_to_tex v = match v with
 and cmd_to_tex cmd style exprs = match cmd with
   | "list" -> list_to_tex style exprs
   | "image" -> image_to_tex style
-  | "section" -> "\\section{" ^ fold_body exprs ^ "}"
-  | "subsection" -> "\\subsection{" ^ fold_body exprs ^ "}"
-  | "subsubsection" -> "\\subsubsection{" ^ fold_body exprs ^ "}"
+  | "section" -> "\\section{" ^ fold_body exprs ^ "}\n"
+  | "subsection" -> "\\subsection{" ^ fold_body exprs ^ "}\n"
+  | "subsubsection" -> "\\subsubsection{" ^ fold_body exprs ^ "}\n"
   | "matrix" -> matrix_to_tex style exprs
+  | "table" -> table_to_tex style exprs
   | _ -> "\\" ^ cmd ^ " " ^ fold_body exprs
 
 and math_to_tex = function
@@ -45,12 +46,12 @@ and matrix_to_tex style exprs =
     | None -> "matrix"
     | Some "()" -> "pmatrix"
     | Some "[]" -> "bmatrix"
-    | Some "{}" -> "BMatrix"
+    | Some "{}" -> "Bmatrix"
     | Some "||" -> "vmatrix"
     | Some "||||" -> "Vmatrix"
     | Some _ -> "matrix" in
-  "\\begin{" ^ sty ^ "}" ^ fold_body exprs ^
-  "\\end{" ^ sty ^ "}"
+  "$\\begin{" ^ sty ^ "}" ^ nlt_to_slash (tabs_to_and (fold_body exprs)) ^
+  "\\end{" ^ sty ^ "}$"
 
 and image_to_tex style = match style with
   | Some s -> let s = Str.split (Str.regexp ", +") s in (match s with
@@ -64,12 +65,24 @@ and table_gen_col = function
   | 1 -> "|c|"
   | n -> "|c" ^ (table_gen_col (n-1))
 
+and tabs_to_and = Str.global_replace (Str.regexp "\t") " & "
+
+and nlt_to_slash s = Str.replace_first (Str.regexp "\\\\\\\\\n")
+"\n"
+(Str.global_replace (Str.regexp "\n") "\\\\\\\n\n" s)
+
+and nl_to_dash s = Str.replace_first (Str.regexp "\\\\\\\\\n")
+"\n"
+(Str.global_replace (Str.regexp "\n") "\\\\\\\n\\hline\n" s)
+
 and table_to_tex style exprs =
-  let columns = (match int_of_string style with
-    | n -> n
-    | _ -> 1) in
-  "\\begin{tabular}" ^ (table_gen_col columns) ^
-  fold_body exprs ^
+  let columns = (match style with
+    | Some style -> (match int_of_string style with
+      | n -> n
+      | exception e -> 1)
+    | None -> 1) in
+  "\\begin{tabular}" ^ "{" ^ (table_gen_col columns) ^ "}" ^
+  (nl_to_dash (tabs_to_and (fold_body exprs))) ^
   "\n\\end{tabular}"
 
 and fold_body exprs =
@@ -84,30 +97,42 @@ and fold_math exprs =
 and head_to_tex = function
   | Title s -> "\\title{" ^ s ^ "}\n"
   | Author s -> "\\author{" ^ s ^ "}\n"
-  | Font s -> "\\usepackage[T1]{fontenc}\n" ^
+  | Font s -> "\\usepackage[T1]{fontenc}\n " ^
               "\\usepackage{" ^ s ^ "}\n" (* tgtermes, mathptmx, txfonts *)
   | HComment s -> "\\begin{comment}\n" ^ s ^ "\n\\end{comment}\n"
   | HString s -> s
   | _ -> ""
 
 and make_head exprs = let assocs = List.fold_left (fun acc -> function
-    | Margins f -> ("margins", string_of_float f)::acc
-    | Linespace sp -> failwith "Unimplemented"
-    | Indent f -> ("indent", string_of_float f)::acc
+    | Margin f -> ("margin", string_of_float f)::acc
     | Fontsize i -> ("font_size", string_of_int i)::acc
 (* 8pt, 9pt, 10pt, 11pt, 12pt, 14pt, 17pt, 20pt *)
+    | Date s -> ("date", s)::acc
+    | Landscape -> ("landscape,", "")::acc
     | _ -> acc) [] exprs in
   let font_size = match List.assoc_opt "font_size" assocs with
     | Some s -> "[" ^ s ^ "pt]"
     | None -> "" in
-  "\\documentclass" ^ font_size ^ "{article}\n" ^
+  let author = match List.assoc_opt "date" assocs with
+    | Some s -> s
+    | None -> "\\today" in
+  let landscape = match List.assoc_opt "landscape," assocs with
+    | Some _ -> "landscape, "
+    | None -> "" in
+  let margin = match List.assoc_opt "margin" assocs with
+    | Some s -> "margin=" ^ s ^ "in"
+    | None -> "" in
+  "\\documentclass" ^ font_size ^ "{extarticle}\n" ^
   "\\usepackage{graphicx}\n" ^
   "\\usepackage{enumerate}\n" ^
+  "\\usepackage{amsmath}\n"^
   "\\graphicspath{ {images/} }\n" ^
-  "\\usepackage{verbatim}\n\n" ^
-  "\\setlength\\parindent{0pt}" ^
+  "\\usepackage{verbatim}\n" ^
+  "\\usepackage{geometry}\n" ^
+  "\\geometry{legalpaper, " ^ landscape ^ margin ^ "}\n" ^
+  "\\setlength\\parindent{0pt}\n" ^
   fold_head exprs ^
-  "\\date{\\today}\n"
+  "\\date{" ^ author ^ "}\n"
 
 and with_newline s =
   let f x = x ^ "   \\\\" in
