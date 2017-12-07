@@ -219,7 +219,7 @@ and auto = parse
   | '\n' ('\t')* "|m [" { add_level (begin_mode M lexbuf); token_return lexbuf }
   | "|t [" { begin_mode M lexbuf }
   | '\n' ('\t')* "|t [" { add_level (begin_mode T lexbuf); token_return lexbuf }
-  | '\n' { new_line lexbuf; STRING "       \\\\\n"}
+  | '\n' { new_line lexbuf; STRING "\\\\\n"}
   | "```" { latex lexbuf }
   | ('\n' ('\t')* as c) '|' (id as apply) ' '* "->" ' '* ([^'\n']+ as style)
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, Some style)) lexbuf }
@@ -251,6 +251,7 @@ and auto = parse
   | '{' { LBRACE }
   | '}' { RBRACE }
   | '\t' {STRING "\t"}
+  | '/' { STRING "/" }
   | letter letter+ {STRING (lexeme lexbuf) }
   | float { MATH (lexeme lexbuf) }
   | [^ '"' '$' '{' '\n' '\\' '#' '}' '%' '\t' '/' ',' '|' '[' ']' '.' ' ']+
@@ -263,7 +264,7 @@ and auto = parse
  and text = parse
    | "|m [" { begin_mode M lexbuf }
    | '\n' ('\t')* "|m [" { add_level (begin_mode M lexbuf); token_return lexbuf }
-   | '\n' { new_line lexbuf; STRING "        \\\\\n"}
+   | '\n' { new_line lexbuf; STRING "\\\\\n"}
    | ('\n' ('\t')* as c) '|' (id as apply) ' '* "->" ' '* ([^'\n']+ as style)
        { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, Some style)) lexbuf }
    | ('\n' ('\t')* as c) '|' (id as apply)
@@ -278,6 +279,8 @@ and auto = parse
    | '\\' [^ '\\' '{' '}' '$' '"' '&' ' ']
        { lex_error lexbuf "invalid escaping in text mode" }
    | '(' { STRING "(" }
+   | '/' { STRING "/" }
+   | ']' {end_mode lexbuf}
    | [^ '"' '$' '{' '<' '\n' '\\' '#' '_' '^' '}' '%' '(' '/' '|' '[' ']']+
        { STRING(lexeme lexbuf) }
    | (_ as c) { lex_error lexbuf "Unexpected char in text mode '%c'" c}

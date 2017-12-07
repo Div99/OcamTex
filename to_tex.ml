@@ -2,7 +2,7 @@ open Ast
 
 let rec expr_to_tex = function
   | String s ->  s
-  | Text exprs -> fold_body exprs
+  | Text exprs -> "\\text{" ^ fold_body exprs ^ "}"
   | Math exprs -> "$" ^ fold_math exprs ^ "$"
   | Comment s -> "\\begin{comment}\n" ^ s ^ "\n\\end{comment}"
   | Var s -> "\\" ^ var_to_tex s
