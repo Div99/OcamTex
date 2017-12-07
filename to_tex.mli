@@ -3,3 +3,5 @@
 val write_to_tex : Ast.doc -> string -> string
 
 val expr_to_tex : Ast.expr -> string
+
+val head_to_tex : Ast.head_expr -> string

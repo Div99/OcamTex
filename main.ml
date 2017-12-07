@@ -7,8 +7,14 @@ let convert_file str =
   let ast_doc = parse_file str in
   write_to_tex ast_doc str
 
-let output_file = convert_file "test.otex"
+let filename = try Sys.argv.(1) with _ -> "document.otex"
 
-let _ = print_string ("Converted to " ^ output_file ^ "\n")
+let basename = let lst = Str.split (Str.regexp ".otex") filename in
+  if List.length lst > 1 then failwith "Bad .otex target"
+  else (List.hd lst)
 
-let _ = system ("pdflatex -jobname=output --interaction=batchmode " ^ output_file)
+let output_file = convert_file filename
+
+let _ = print_string ("Converted to " ^ basename ^ ".tex\n")
+
+let _ = system ("pdflatex -jobname=" ^ basename ^ " --interaction=batchmode " ^ basename ^ ".tex")

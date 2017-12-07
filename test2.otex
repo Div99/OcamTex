@@ -16,20 +16,15 @@ Hello
 
 */
 
-2 + 3 = 5
+2+3=5
 x = y = 5
 I
 i
 :inf
-
 2.3
-
 fdd123
-
-
+<=
 (2 + 3 + 5) * 7
-
-|eqn (2 + 3 + 5) * 7
 
 |image -> camel.jpg, .2
 
@@ -49,17 +44,18 @@ faaa
 	A	B E
 	C	D F
 
-|newpage hjghjgg
+|newpage
 
 |section This is a section
 
-	This is some text.
+This is some text.
 
 |subsection This is a subsection
 |subsubsection This is a subsubsection
 |table -> 3
 	Hi	lol	wtf
 	bob	is	awesome
+	hey	whats	up
 
 |newpage
 
