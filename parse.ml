@@ -28,7 +28,7 @@ let syntax_error_message lexbuf  =
     (location_message lexbuf)
     (lexeme lexbuf)
 
-(* [parse_error lexbuf] raises SyntaxError with a description provided by 
+(* [parse_error lexbuf] raises SyntaxError with a description provided by
    [syntax_error_message]
 *)
 let parse_error lexbuf =
@@ -103,7 +103,7 @@ let dir = ref ""
 let error lc stk m =
     print_gen (print_err_msg_and_exit lc stk) m
 
-(* [parse_file filename] is the resulting AST document from parsing the file 
+(* [parse_file filename] is the resulting AST document from parsing the file
    [filename]
 *)
 let parse_file filename =
