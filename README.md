@@ -18,8 +18,10 @@ Creating a more intuitive TeX language and raising the current standards.
 1. Install required Opam dependencies - we use extlib for file IO.
 
     `opam install extlib ocamllex menhir`
-1. `make main` makes the `main.byte` executable.
-1. `make test` runs the oUnit test suite.
+1. `make` or `make test` will run the oUnit test suite.
+1. `make main` will build the `main.byte` executable.
+1. `make tex` will build the `main.byte` and attempts to run it on the default file `test.otex`.
+1. `make clean` will delete generated files produced by the make and build systems, as well as any `.aux`, `.log`, `.tex`, and `.pdf` files.
 
 Sublime Syntax plugin: https://github.com/Div99/OCamTeX
 
@@ -98,7 +100,7 @@ The second method is for multi-line block comments, which use the backslash star
 
 Uses matrix command and specifies formatting of borders from one of the four displayed choices. It defaults to square brackets if a border type is not specified. We then separate each entry in a row by a tab/spaces and separate rows by the new line character, `\n`.
 
-The entries must be tabbed.
+The entries must be hard tabbed.
 
 ```
 |matrix -> [],{},||,||||
@@ -109,7 +111,7 @@ The entries must be tabbed.
 #### Tables
 Uses the table command. Rows are separated by new line character and columns by tab characters. The style parameter passed in specifies the number of columns.
 
-The entries must be tabbed from the left.
+The entries must be hard tabbed.
 
 ```
 |table -> 2
@@ -122,7 +124,7 @@ We represent the list command as shown below where the first line after initiali
 
 Dashes signify items within a list.
 
-Lists are nestable. The entries must be tabbed from the left. The number of tabs indicates what list an entry should appear in.
+Lists are nestable. The entries must be hard tabbed. The number of tabs indicates what list an entry should appear in.
 
 ```
 |list -> (a), (1), (i), (A), (I)

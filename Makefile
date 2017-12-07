@@ -7,11 +7,6 @@ main:
 tex:
 	make main && ./main.byte test.otex
 
-pdf:
-	make tex && open test.pdf
-parse:
-	ocamlbuild -use-ocamlfind parse.byte && ./parse.byte
-
 clean:
 		ocamlbuild -clean
 		rm *.aux *.log *.tex *.pdf
