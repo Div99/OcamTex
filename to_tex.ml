@@ -10,6 +10,20 @@ let rec expr_to_tex = function
 
 and var_to_tex v = match v with
   | "inf" -> "infty"
+  | "arrow" -> "rightarrow"
+  | "larrow" -> "leftarrow"
+  | "lrarrow" -> "leftrightarrow"
+  | "Arrow" -> "Rightarrow"
+  | "Larrow" -> "Leftarrow"
+  | "Lrarrow" -> "Leftrightarrow"
+  | "or" -> "lor"
+  | "and" -> "land"
+  | "union" -> "cup"
+  | "intersect" -> "cap"
+  | "nats" -> "\\mathbb{N}"
+  | "reals" -> "\\mathbb{R}"
+  | "ints" -> "\\mathbb{Z}"
+  | "rats" -> "\\mathbb{Q}"
   | _ -> v
 
 and cmd_to_tex cmd style exprs = match cmd with
@@ -125,6 +139,7 @@ and make_head exprs = let assocs = List.fold_left (fun acc -> function
   "\\usepackage{graphicx}\n" ^
   "\\usepackage{enumerate}\n" ^
   "\\usepackage{amsmath}\n"^
+  "\\usepackage{amsfonts}\n"^
   "\\graphicspath{ {images/} }\n" ^
   "\\usepackage{verbatim}\n" ^
   "\\usepackage{geometry}\n" ^
