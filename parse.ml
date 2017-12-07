@@ -70,6 +70,7 @@ let dir = ref ""
     print_loc loc <:> print "@\n" <:> print "%s" m <:> print "@\n"
 
   let string_mode = function
+    | A -> "Auto mode"
     | M -> "Math mode"
     | T -> "Text mode"
     | CMD (name,_) -> sprintf "Command mode (%s)" name

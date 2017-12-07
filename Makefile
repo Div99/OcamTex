@@ -2,13 +2,13 @@ test:
 	ocamlbuild -use-ocamlfind test.byte && ./test.byte
 
 main:
-	ocamlbuild -use-ocamlfind main.byte 
+	ocamlbuild -use-ocamlfind main.byte
 
 tex:
-	make main && ./main.byte
+	make main && ./main.byte test.otex
 
 pdf:
-	make tex && open output.pdf
+	make tex && open test.pdf
 
 ast:
 	ocamlbuild -use-ocamlfind ast.byte
