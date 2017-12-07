@@ -11,13 +11,13 @@
 Hello World.
 Hello
 
-	|m [  2 + 3 >= 4 ]
+	|m [  2 + 3 >= 4 `ne  ]
 /* And so is this one
 ...
 
 */
+2 + 3 >= 5 this is some
 
-2 + 3 >= 5
 x = y = 5
 
 2.3
