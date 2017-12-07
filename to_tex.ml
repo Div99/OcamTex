@@ -84,7 +84,7 @@ and table_to_tex style exprs =
     | None -> 1) in
   "\\begin{tabular}" ^ "{" ^ (table_gen_col columns) ^ "}" ^
   (nl_to_dash (tabs_to_and (fold_body exprs))) ^
-  "\n\\end{tabular}"
+  "\\\\\n\\hline\n\\end{tabular}"
 
 and fold_body exprs =
   List.fold_left (fun acc expr -> acc ^ expr_to_tex expr) "" exprs
@@ -95,7 +95,7 @@ and fold_head exprs =
 and head_to_tex = function
   | Title s -> "\\title{" ^ s ^ "}\n"
   | Author s -> "\\author{" ^ s ^ "}\n"
-  | Font s -> "\\usepackage[T1]{fontenc}\n " ^
+  | Font s -> "\\usepackage[T1]{fontenc}\n" ^
               "\\usepackage{" ^ s ^ "}\n" (* tgtermes, mathptmx, txfonts *)
   | HComment s -> "\\begin{comment}\n" ^ s ^ "\n\\end{comment}\n"
   | HString s -> s
@@ -108,16 +108,17 @@ and make_head exprs = let assocs = List.fold_left (fun acc -> function
     | Date s -> ("date", s)::acc
     | Landscape -> ("landscape,", "")::acc
     | _ -> acc) [] exprs in
-  let font_size = match List.assoc_opt "font_size" assocs with
+  let assoc s = List.assoc_opt s assocs in
+  let font_size = match assoc "font_size" with
     | Some s -> "[" ^ s ^ "pt]"
     | None -> "" in
-  let author = match List.assoc_opt "date" assocs with
+  let author = match assoc "date" with
     | Some s -> s
     | None -> "\\today" in
-  let landscape = match List.assoc_opt "landscape," assocs with
+  let landscape = match assoc "landscape," with
     | Some _ -> "landscape, "
     | None -> "" in
-  let margin = match List.assoc_opt "margin" assocs with
+  let margin = match assoc "margin" with
     | Some s -> "margin=" ^ s ^ "in"
     | None -> "" in
   "\\documentclass" ^ font_size ^ "{extarticle}\n" ^
