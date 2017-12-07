@@ -265,9 +265,6 @@ and auto = parse
   | ">=" { MATH_OP "geq" }
   | "!=" { MATH_OP "ne" }
   | "lim" { MATH_OP "limit" }
-  | ',' { COMMA }
-  | '{' { LBRACE }
-  | '}' { RBRACE }
   | '\t' {STRING "\t"}
   | '/' { STRING "/" }
   | letter letter+ {STRING (lexeme lexbuf) }
