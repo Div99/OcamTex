@@ -24,6 +24,7 @@ and var_to_tex v = match v with
   | "reals" -> "\\mathbb{R}"
   | "ints" -> "\\mathbb{Z}"
   | "rats" -> "\\mathbb{Q}"
+  | "del" | "grad" -> "\\nabla"
   | _ -> v
 
 and cmd_to_tex cmd style exprs = match cmd with
