@@ -1,9 +1,9 @@
 open Ast
 
 let rec expr_to_tex = function
-  | String s -> s
+  | String s ->  s
   | Text exprs -> fold_body exprs
-  | Math exprs -> "$" ^ fold_math exprs ^ "$"
+  | Math s -> "$" ^ (math_to_tex s) ^ "$"
   | Comment s -> "\\begin{comment}\n" ^ s ^ "\n\\end{comment}"
   | Var s -> "\\" ^ var_to_tex s
   | Cmd ((cmd, style), exprs) -> cmd_to_tex cmd style exprs
@@ -23,8 +23,8 @@ and cmd_to_tex cmd style exprs = match cmd with
   | _ -> "\\" ^ cmd ^ " " ^ fold_body exprs
 
 and math_to_tex = function
-  | Math_op s -> "\\" ^ math_op_to_tex s
-  | Expr ex -> expr_to_tex ex
+  | Math_op s -> "\\" ^ s
+  | MathStr s -> s
 
 and math_op_to_tex = function
   | Leaf_op s -> s
@@ -91,9 +91,6 @@ and fold_body exprs =
 and fold_head exprs =
   List.fold_left (fun acc expr -> acc ^ head_to_tex expr) "" exprs
 
-and fold_math exprs =
-  List.fold_left (fun acc expr -> acc ^ math_to_tex expr) "" exprs
-
 and head_to_tex = function
   | Title s -> "\\title{" ^ s ^ "}\n"
   | Author s -> "\\author{" ^ s ^ "}\n"
@@ -133,10 +130,6 @@ and make_head exprs = let assocs = List.fold_left (fun acc -> function
   "\\setlength\\parindent{0pt}\n" ^
   fold_head exprs ^
   "\\date{" ^ author ^ "}\n"
-
-and with_newline s =
-  let f x = x ^ "   \\\\" in
-  Str.(substitute_first (regexp "\n[^\n\r]+.*$") f s)
 
 let write_string_to_file filename str =
   let chan = open_out filename in

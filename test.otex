@@ -13,11 +13,18 @@ Hello
 
 /* And so is this one
 ...
-*/
-|m [ \newpage ]
-|m [`lim_{x\to\infty}  `binom{n}{k} = `frac{n!}{k!(n-k)!} `ngtr 4]
 
-fdd
+*/
+
+2+3=5
+x = y = 5
+I
+i
+:inf
+2.3
+fdd123
+<=
+(2 + 3 + 5) * 7
 
 |image -> camel.jpg, .2
 
@@ -32,22 +39,19 @@ fdd
 
 dfsd
 faaa
-sdf
-ds
 
-&
-
-|matrix -> {}
-	A	B
-	C	D
-
+|matrix -> ||
+	A	B E
+	C	D F
 
 |newpage
 
 |section This is a section
+
+This is some text.
+
 |subsection This is a subsection
 |subsubsection This is a subsubsection
-
 |table -> 3
 	Hi	lol	wtf
 	bob	is	awesome

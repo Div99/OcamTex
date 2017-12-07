@@ -31,26 +31,29 @@
 
   let get_stack () = !st
 
+  let levels = ref []
+
+  let add_level m = levels := !levels @ [m]
+
+  let add_new_line () = add_level (STRING "\n")
+
+  let decr_levels lexbuf =
+    match !levels with
+    | [] -> lex_error lexbuf !st "can't decrease levels"
+    | h::t -> levels := t; h
+
   let get_mode () =
       match !st with
         | (m,_)::_ -> m
         | [] -> T
-
-  let cmd_begin = ref None
-
-  let set_cmd_begin cmd = (cmd_begin := Some cmd)
-
-  let add_cmd () =
-    match !cmd_begin with
-    | Some cmd -> cmd_begin := None; CMD_BEGIN cmd
-    | None -> STRING ""
 
   let begin_mode m lexbuf =
       st := (m , loc lexbuf) :: !st;
       match m with
         | M -> MATH_BEGIN
         | T -> TEXT_BEGIN
-        | CMD (cmd, style) -> set_cmd_begin (cmd, style); STRING "\n"
+        | CMD (cmd, style) ->
+            add_new_line (); add_level (CMD_BEGIN (cmd, style)); STRING ""
 
   let end_mode lexbuf =
       match !st with
@@ -69,16 +72,10 @@
             st := rem; CMD_END
      | _ -> lex_error lexbuf !st "no cmd to end"
 
-  let end_cmd_newline () =
-    match !st with
-     | (CMD _, _)::rem ->
-            st := rem; CMD_END
-     | _ -> STRING "\n"
-
   let get_mode2 () =
      match !st with
        | (m,_)::(m2,_)::_-> m2
-       | [] -> T
+       | _ -> T
 
   let check_mode letter def lexbuf=
      match letter, get_mode2 () with
@@ -109,15 +106,14 @@
    let l = ref 0 in
 	 String.iter (fun c -> if c='\t' then l := !l+1) s; !l
 
-  let levels = ref 0
-
-  let incr_levels () = levels := !levels + 1
-
-  let decr_levels () = levels := !levels - 1
+  let end_cmd_level () =
+    match !st with
+     | (CMD _, _)::rem ->  st := rem; add_level CMD_END
+     | _ -> ()
 
 	let change_indent curr_level is_cmd lexbuf =
     new_line lexbuf;
-    let f n acc = if curr_level <= n then (incr_levels (); acc)
+    let f n acc = if curr_level <= n then (end_cmd_level (); acc)
                   else n::acc in
 		if is_cmd then
 		 (if !indent_st = [] || curr_level > List.hd !indent_st then
@@ -151,7 +147,7 @@
 
   let token_return lexbuf =
     new_line lexbuf;
-    STRING "\n" (* to keep the line count correct *)
+    STRING "\\\\\n"
 
   let head = ref true
 
@@ -182,6 +178,7 @@
 let white = [' ' '\t']+
 let digit = ['0'-'9']
 let int = '-'? digit+
+let float = '-'? digit+ '.' digit*
 let letter = ['a'-'z' 'A'-'Z']
 let id = ('_' | letter) ('_' | letter | digit)*
 let op = ('_' | letter)+
@@ -198,22 +195,11 @@ rule head = parse
   | "|font" white ([^ '\n']+ as c) {FONT c}
   | "|fontsize" white (digit+ as c) {FONTSIZE (int_of_string c)}
   | "```" { latex lexbuf }
-  | '\n' { token_return lexbuf }
+  | '\n' { new_line lexbuf; STRING "\n" }
   | ':' (id as v)  { VAR v }
   | '#' { STRING "\\#" }
   | '_' { STRING "\\_" }
   | '%' { STRING "\\%" }
-
-  | "\\\\" { STRING "\\\\" }
-  | "\\{" { STRING "\\{" }
-  | "\\}" { STRING "\\}" }
-  | "\\$" { STRING "\\$" }
-  | "\\\"" { STRING "\"" }
-  | "\\&" { STRING "\\&" }
-  | "\\ " { STRING "\\ " }
-  | "\\'" { STRING "\\'" }
-  | "\\`" { STRING "\\`" }
-
   | '\\' [^ '\\' '{' '}' '$' '"' '&' ' ']
       { lex_error lexbuf "invalid escaping in head" }
 
@@ -222,8 +208,8 @@ rule head = parse
       { start_comment (); Buffer.add_string comment_buf c;
         end_comment () }
   | '(' { STRING "(" }
-
-  | [^ '"' '$' '{' '<' '\n' '\\' '#' '_' '^' '}' '%' '(' '/' '|']+
+  | '\t' {STRING ""}
+  | [^ '"' '$' '{' '<' '\n' '\\' '#' '_' '^' '}' '%' '(' '/' '|' '\t']+
       { STRING(lexeme lexbuf) }
   | '|' ([^ '\n' ' ']+ as s)  { lex_error lexbuf "Unknown tag in head '%s'" s}
   | (_ as c) { lex_error lexbuf "Unexpected char in head mode '%c'" c}
@@ -232,7 +218,7 @@ rule head = parse
 
 and text = parse
   | "|m [" { begin_mode M lexbuf }
-  | '\n' ('\t')* "|m [" { new_line lexbuf; begin_mode M lexbuf }
+  | '\n' ('\t')* "|m [" { add_level (begin_mode M lexbuf); token_return lexbuf }
   | '\n' { new_line lexbuf; STRING "        \\\\\n"}
   | "```" { latex lexbuf }
   | ('\n' ('\t')* as c) '|' (id as apply) ' '* "->" ' '* ([^'\n']+ as style)
@@ -247,20 +233,23 @@ and text = parse
   | '#' { STRING "\\#" }
   | '_' { STRING "\\_" }
   | '%' { STRING "\\%" }
-  | "\\\\" { STRING "\\\\" }
-  | "\\{" { STRING "\\{" }
-  | "\\}" { STRING "\\}" }
-  | "\\$" { STRING "\\$" }
-  | "\\\"" { STRING "\"" }
-  | '&' { STRING "\\$" }
-  | "\\ " { STRING "\\ " }
-  | "\\'" { STRING "\\'" }
-  | "\\`" { STRING "\\`" }
   | '\\' [^ '\\' '{' '}' '$' '"' '&' ' ']
       { lex_error lexbuf "invalid escaping in text mode" }
   | '(' { STRING "(" }
-  | [^ '"' '$' '{' '<' '\n' '\\' '#' '_' '^' '}' '%' '(' '/' '|' '[' ']']+
-      { STRING(lexeme lexbuf) }
+  | ')' { STRING ")" }
+  | '.' {STRING "." }
+  | ' ' { STRING " " }
+  | 'I' {STRING "I" }
+  | ':' (id as v) { VAR v }
+  | '`' (op as n) { MATH_OP n }
+  | "lim" { MATH_OP "limit" }
+  | ',' { COMMA }
+  | '{' { LBRACE }
+  | '}' { RBRACE }
+  | letter letter+ {STRING (lexeme lexbuf) }
+  | float { MATH (lexeme lexbuf) }
+  | [^ '"' '$' '{' '\n' '\\' '#' '}' '%' '(' ')' '/' ',' '|' '[' ']' '.' ' ']+
+      { MATH (lexeme lexbuf) }
   | (_ as c) { lex_error lexbuf "Unexpected char in text mode '%c'" c}
   | '\n' (' ')+ {lex_error lexbuf "non-tab indent"}
   | eof { if top_level () then EOF else
@@ -282,35 +271,13 @@ and latex = parse
   | eof { lex_error lexbuf "unexpected end of file in latex" }
 
 and math = parse
-  | "|t [" { begin_mode T lexbuf }
-  | ']' {end_mode lexbuf}
   | '\t' { STRING "\\&"}
   | "\n\t" {STRING (check_mode "nt" "\n\\t" lexbuf)}
   | '\n' {new_line lexbuf; STRING (check_mode "n" "\n" lexbuf)}
-  | ':' (id as v) { VAR v }
-  | '`' (op as n) { LEAF_OP n }
-  | "<=" { LEAF_OP "leq" }
-  | ">=" { LEAF_OP "geq" }
-  | "!=" { LEAF_OP "ne" }
-  | "!<" { LEAF_OP "nless" }
-  | "!>" { LEAF_OP "ngtr" }
-  | '`' (op as n) '{'
   | '%' { STRING "\\%" }
-  | "\\\\" { STRING "\\\\" }
-  | "\\{" { STRING "\\{}" }
-  | "\\}" { STRING "\\}" }
-  | "\\$" { STRING "\\$" }
-  | "\\\"" { STRING "\"" }
-  | "\\ " { STRING "\\ " }
-  | "\\_" { STRING "\\_" }
   | ' ' { STRING " " }
   | ':' (['a'-'z' 'A'-'Z']+ as c) {STRING ("\\" ^ c)}
-  | "/*" { start_comment (); comment lexbuf }
-  | "//" ([^'\n' '\r']* as c)
-      { start_comment (); Buffer.add_string comment_buf c;
-        end_comment () }
   | '`' {lex_error lexbuf "invalid char in math mode" '`'}
-  | '[' {lex_error lexbuf "invalid char in math mode" '['}
   | _  { STRING (lexeme lexbuf) }
   | "```" { latex lexbuf }
   | '\n' (' ')+ {lex_error lexbuf "non-tab indent"}
@@ -319,23 +286,23 @@ and math = parse
 and command = parse
   | "|m [" { begin_mode M lexbuf }
   | "```" { latex lexbuf }
-  | '\n' ('\t')* "```" { new_line lexbuf; latex lexbuf }
+  | '\n' ('\t')* "```" { new_line lexbuf; add_new_line (); latex lexbuf }
   | ('\n' ('\t')* as c) "|m" { change_indent (curr_level c) false lexbuf;
-                               begin_mode M lexbuf }
+                               add_new_line (); begin_mode M lexbuf }
   | "|t [" { begin_mode T lexbuf }
   | ('\n' ('\t')* as c) "|t" { change_indent (curr_level c) false lexbuf;
-                               begin_mode T lexbuf }
+                               add_new_line (); begin_mode T lexbuf }
   | ']' {end_mode lexbuf}
   | ('\n' ('\t')* as c) '-'
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD ("item", None)) lexbuf}
-  | '\n' ('\t')*  "|end" { new_line lexbuf; end_cmd lexbuf }
+  | '\n' ('\t')*  "|end" { new_line lexbuf; add_new_line (); end_cmd lexbuf }
   | "|END" { end_cmd lexbuf }
   | ('\n' ('\t')* as c) '|' (id as apply) ' '* "->" ' '* ([^'\n']+ as style)
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, Some style)) lexbuf }
   | ('\n' ('\t')* as c) '|' (id as apply)
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, None)) lexbuf}
   | ('\n' ('\t')* as c)  { change_indent (curr_level c) false lexbuf;
-                           STRING "\n" }
+                           add_new_line (); (STRING "") }
   | ':' (id as v) { VAR v }
   | "/*" { start_comment (); comment lexbuf }
   | "//" ([^'\n' '\r']* as c)
@@ -348,15 +315,6 @@ and command = parse
   | '#' { STRING "\\#" }
   | '_' { STRING "\\_" }
   | '%' { STRING "\\%" }
-  | "\\\\" { STRING "\\\\" }
-  | "\\{" { STRING "\\{" }
-  | "\\}" { STRING "\\}" }
-  | "\\$" { STRING "\\$" }
-  | "\\\"" { STRING "\"" }
-  | '&' { STRING "\\&" }
-  | "\\ " { STRING "\\ " }
-  | "\\'" { STRING "\\'" }
-  | "\\`" { STRING "\\`" }
   | '\\' [^ '\\' '{' '}' '$' '"' '&' ' ']
       { lex_error lexbuf "invalid escaping in command mode" }
   | '(' { STRING "(" }
@@ -369,9 +327,7 @@ and command = parse
 {
   let token lexbuf =
     if is_head () then head lexbuf
-    else if !levels > 0 then (decr_levels (); end_cmd_newline ())
-    else if !cmd_begin <> None then add_cmd ()
-    else if !math_cmd then open_math lexbuf
+    else if List.length !levels > 0 then decr_levels lexbuf
     else match get_mode () with
       | M -> math lexbuf
       | T -> text lexbuf
