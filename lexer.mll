@@ -183,7 +183,7 @@ rule head = parse
   | "|BODY" { end_head (); BODY }
   | "|title" white ([^ '\n' '/']+ as c) {TITLE c}
   | "|author" white ([^ '\n' '/']+ as c) {AUTHOR c}
-  | "|date" white ([^ '\n' '/']+ as c) {DATE c}
+  | "|date" white ([^ '\n']+ as c) {DATE c}
   | "|margins" white ([^ '\n' '/']+ as c) {MARGIN (float_of_string c)}
   | "|landscape" {LANDSCAPE}
   | "|font" white ([^ '\n']+ as c) {FONT c}
@@ -194,6 +194,7 @@ rule head = parse
   | '#' { STRING "\\#" }
   | '_' { STRING "\\_" }
   | '%' { STRING "\\%" }
+  | '/' { STRING "/" }
   | '\\' [^ '\\' '{' '}' '$' '"' '&' ' ']
       { lex_error lexbuf "invalid escaping in head" }
 
