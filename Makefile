@@ -7,12 +7,6 @@ main:
 tex:
 	make main && ./main.byte
 
-pdf:
-	make tex && open output.pdf
-
-ast:
-	ocamlbuild -use-ocamlfind ast.byte
-
 parse:
 	ocamlbuild -use-ocamlfind parse.byte && ./parse.byte
 
