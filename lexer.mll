@@ -27,6 +27,7 @@
 (* Helper functions for lexing strings *)
 (******************************************************************)
 
+
   let st = ref []
 
   let get_stack () = !st
@@ -42,11 +43,15 @@
     | [] -> lex_error lexbuf !st "can't decrease levels"
     | h::t -> levels := t; h
 
+  (* get_mode () returns the current mode based on the stack [st]. If the stack
+   * is empty, returns T for text mode. *)
   let get_mode () =
       match !st with
         | (m,_)::_ -> m
         | [] -> T
 
+  (* begin_mode [m lexbuf] appends the mode to the stack [st] and matches [m]
+   * to the proper parser token. *)
   let begin_mode m lexbuf =
       st := (m , loc lexbuf) :: !st;
       match m with
@@ -55,6 +60,9 @@
         | CMD (cmd, style) ->
             add_new_line (); add_level (CMD_BEGIN (cmd, style)); STRING ""
 
+
+  (* end_mode [lexbuf] matches the top of the stack [st] with the proper mode
+   * and returns the correct ending token for the mode. Does not end commands.*)
   let end_mode lexbuf =
       match !st with
         | (CMD _, _)::_ -> lex_error lexbuf !st "Not valid end of cmd"
@@ -66,12 +74,17 @@
               | CMD _ -> CMD_END )
         | [] -> lex_error lexbuf !st "Not valid end of mode"
 
+  (* end_cmd [lexbuf] matches the command on the top of the stack [st] with the
+   * proper command and returns the correct ending token for the command. *)
   let end_cmd lexbuf =
     match !st with
      | (CMD _, _)::rem ->
             st := rem; CMD_END
      | _ -> lex_error lexbuf !st "no cmd to end"
 
+  (* end_cmd_newline () matches the command on the top of the stack [st]
+   * with the proper command and returns the correct ending token for the mode  or
+   * returns a new line *)
   let end_cmd_newline () =
     match !st with
      | (CMD _, _)::rem ->
@@ -88,24 +101,24 @@
 
   let string_buffer = Buffer.create 256
 
-  (*let token_item lexbuf =*)
-
   let reset_string_buffer () = Buffer.reset string_buffer
 
   let get_stored_string () = Buffer.contents string_buffer
 
   let indent_st = ref []
 
+  (* curr_level [s] gets the current level based on the number of tabs in [s] *)
   let curr_level s =
    let l = ref 0 in
 	 String.iter (fun c -> if c='\t' then l := !l+1) s; !l
 
+  (* end_cmd_level [()] gets the current level based on the number of tabs in [s] *)
   let end_cmd_level () =
     match !st with
      | (CMD _, _)::rem ->  st := rem; add_level CMD_END
      | _ -> ()
 
-	let change_indent curr_level is_cmd lexbuf =
+  let change_indent curr_level is_cmd lexbuf =
     new_line lexbuf;
     let f n acc = if curr_level <= n then (end_cmd_level (); acc)
                   else n::acc in
