@@ -33,7 +33,7 @@ fdd123
 |list -> (a)
 	- Hi
 	- Bye
-	- 2 +  3 = 5
+	- 2 + 3 = 5
 	|list -> 1.
 		- Hi2
 		- Bye2

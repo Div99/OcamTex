@@ -221,7 +221,7 @@ and auto = parse
   | '\n' ('\t')* "|t [" { add_level (begin_mode T lexbuf); token_return lexbuf }
   | '\n' { new_line lexbuf; STRING "\\\\\n"}
   | "```" { latex lexbuf }
-  | ('\n' ('\t')* as c) '|' (id as apply) ' '* "->" ' '* ([^'\n']+ as style)
+  | ('\n' ('\t')* as c) '|' (id as apply) ' '* "->" ' '* ([^'\n' '/']+ as style)
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, Some style)) lexbuf }
   | ('\n' ('\t')* as c) '|' (id as apply)
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, None)) lexbuf}
@@ -265,7 +265,7 @@ and auto = parse
    | "|m [" { begin_mode M lexbuf }
    | '\n' ('\t')* "|m [" { add_level (begin_mode M lexbuf); token_return lexbuf }
    | '\n' { new_line lexbuf; STRING "\\\\\n"}
-   | ('\n' ('\t')* as c) '|' (id as apply) ' '* "->" ' '* ([^'\n']+ as style)
+   | ('\n' ('\t')* as c) '|' (id as apply) ' '* "->" ' '* ([^'\n' '/']+ as style)
        { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, Some style)) lexbuf }
    | ('\n' ('\t')* as c) '|' (id as apply)
        { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, None)) lexbuf}
@@ -306,7 +306,7 @@ and latex = parse
 and math = parse
   | "|t [" { begin_mode T lexbuf }
   | '\n' ('\t')* "|t [" { add_level (begin_mode T lexbuf); token_return lexbuf }
-  | ('\n' ('\t')* as c) '|' (id as apply) ' '* "->" ' '* ([^'\n']+ as style)
+  | ('\n' ('\t')* as c) '|' (id as apply) ' '* "->" ' '* ([^'\n' '/']+ as style)
        { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, Some style)) lexbuf }
   | ('\n' ('\t')* as c) '|' (id as apply)
        { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, None)) lexbuf}
