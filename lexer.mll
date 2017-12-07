@@ -28,7 +28,6 @@
 (* Helper functions for lexing strings *)
 (******************************************************************)
 
-
   let st = ref []
 
   let get_stack () = !st
@@ -115,22 +114,23 @@
    let l = ref 0 in
 	 String.iter (fun c -> if c='\t' then l := !l+1) s; !l
 
-  (* end_cmd_level [()] gets the current level based on the number of tabs in [s] *)
+  (* end_cmd_level [()] gets the current nested level of commands based on the
+   * number of tabs in [s] *)
   let end_cmd_level () =
     match !st with
      | (CMD _, _)::rem ->  st := rem; add_level CMD_END
      | _ -> ()
 
+  (* change_indent [curr_level is_cmd lexbuf] will update the indentation  *)
   let change_indent curr_level is_cmd lexbuf =
     new_line lexbuf;
-    let f n acc = if curr_level <= n then (end_cmd_level (); acc)
-                  else n::acc in
-		if is_cmd then
-		 (if !indent_st = [] || curr_level > List.hd !indent_st then
+    let f n acc = if curr_level <= n then (end_cmd_level (); acc) else n::acc in
+    if is_cmd then
+        (if !indent_st = [] || curr_level > List.hd !indent_st then
         indent_st := curr_level::(!indent_st)
-      else (indent_st := List.fold_right f !indent_st [];
-         indent_st := curr_level::(!indent_st)))
-		else  indent_st := List.fold_right f !indent_st []
+    else (indent_st := List.fold_right f !indent_st [];
+        indent_st := curr_level::(!indent_st)))
+        else indent_st := List.fold_right f !indent_st []
 
   let comment_buf = Buffer.create 128
 
@@ -139,8 +139,8 @@
   let start_comment () =
     incr comment_nests
 
-  (* Close the current comment. If we are still in a comment, raise Exit.
-     Else, return a COMMENT token containing the whole comment. *)
+  (* end_comment [()] closes the current comment. If still in a comment, raise
+   * Exit, else returns a COMMENT token with the whole comment. *)
   let end_comment () =
     decr comment_nests;
     if !comment_nests >= 1 then raise Exit;
@@ -166,17 +166,6 @@
   let end_head () = head := false
 
   let reset_head () = head := true
-
-  let math_cmd = ref false
-
-  let open_math lexbuf =
-  match get_mode () with
-  | CMD (cmd, _) ->
-        (match cmd with
-          | "matrix" | "eqn" | "equation" -> math_cmd := false; begin_mode M lexbuf
-          | _ -> lex_error lexbuf "Not a valid math mode command")
-  | _ -> lex_error lexbuf "Not a valid math mode command"
-
 
 }
 
