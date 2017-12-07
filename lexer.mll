@@ -19,8 +19,10 @@
     * (mode * loc) list (* stack of open modes *)
     * string (* explanation *)
 
+  (* loc [lexbuf] returns tuple of start and end of lexbuf *)
   let loc lexbuf = (lexeme_start_p lexbuf, lexeme_end_p lexbuf)
 
+  (* lex_error [lexbuf stack s] prints out a lexer error *)
   let lex_error lexbuf stack s =
     Printf.ksprintf (fun s -> raise (Lexical_error(loc lexbuf, stack, s))) s
 
@@ -34,10 +36,13 @@
 
   let levels = ref []
 
+  (* add_level [m] appends [m] to the end of levels *)
   let add_level m = levels := !levels @ [m]
 
+  (* add_new_line [())] adds a new level of new line *)
   let add_new_line () = add_level (STRING "\n")
 
+  (* decr_levels [lexbuf] pops off the top level to decrease*)
   let decr_levels lexbuf =
     match !levels with
     | [] -> lex_error lexbuf !st "can't decrease levels"
@@ -93,18 +98,21 @@
             st := rem; CMD_END
      | _ -> STRING "\n"
 
-  let reset_st () =
-      st := []
+  (* reset_st [()] resets state [st]*)
+  let reset_st () =  st := []
 
-  let top_level () =
-      !st = []
+  (* top_level [()] returns true if [st] is empty, false otherwise *)
+  let top_level () = !st = []
 
+  (* lex_error [lexbuf s] calls lex_error to print out an error *)
   let lex_error lexbuf s = lex_error lexbuf (get_stack ()) s
 
   let string_buffer = Buffer.create 256
 
+  (* reset_string_buffer [()] resets the string_buffer *)
   let reset_string_buffer () = Buffer.reset string_buffer
 
+  (* get_stored_string [()] gets the contents of the string buffer *)
   let get_stored_string () = Buffer.contents string_buffer
 
   let indent_st = ref []
@@ -121,7 +129,8 @@
      | (CMD _, _)::rem ->  st := rem; add_level CMD_END
      | _ -> ()
 
-  (* change_indent [curr_level is_cmd lexbuf] will update the indentation  *)
+  (* change_indent [curr_level is_cmd lexbuf] will update the stack controlling
+   * the indentation level of each nested command*)
   let change_indent curr_level is_cmd lexbuf =
     new_line lexbuf;
     let f n acc = if curr_level <= n then (end_cmd_level (); acc) else n::acc in
@@ -136,6 +145,8 @@
 
   let comment_nests = ref 0
 
+  (* start_comment [()] increases the comment_nests var whenever a comment is
+   * started *)
   let start_comment () =
     incr comment_nests
 
@@ -150,21 +161,26 @@
 
   let latex_buf = Buffer.create 128
 
+  (* end_latex [()] resets the latex_buffer. *)
   let end_latex () =
     let s = Buffer.contents latex_buf in
     Buffer.reset latex_buf;
     LATEX s
 
+  (* token_return [lexbuf] adds a new line to the lexbuf *)
   let token_return lexbuf =
     new_line lexbuf;
     STRING "\\\\\n"
 
   let head = ref true
 
+  (* is_head [()] returns the value within the head reference *)
   let is_head () = !head
 
+  (* end_head [()] sets head reference to false *)
   let end_head () = head := false
 
+  (* reset_head [()] sets head refereence to true*)
   let reset_head () = head := true
 
 }
