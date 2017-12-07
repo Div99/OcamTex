@@ -9,10 +9,6 @@ tex:
 
 pdf:
 	make tex && open test.pdf
-
-ast:
-	ocamlbuild -use-ocamlfind ast.byte
-
 parse:
 	ocamlbuild -use-ocamlfind parse.byte && ./parse.byte
 
