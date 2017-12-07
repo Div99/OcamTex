@@ -17,7 +17,7 @@ Creating a more intuitive TeX language and raising the current standards.
 1. Install Ocaml per instructions on [this page](https://opam.ocaml.org/doc/Install.html).
 1. Install required Opam dependencies - we use extlib for file IO.
 
-    `opam install extlib ocamllex menhir ounit`
+    `opam install extlib ocamllex menhir`
 1. `make main` makes the `main.byte` executable.
 1. `make test` runs the oUnit test suite.
 

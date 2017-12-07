@@ -18,7 +18,7 @@ and expr =
   | Cmd of (string * style) * expr list
   | Var of string
   | String of string
-  | Math of math
+  | Math of math list
   | Text of expr list
   | Comment of string
 
@@ -26,6 +26,7 @@ and expr =
 and math =
   | Math_op of string
   | MathStr of string
+  | Expr of expr
 
 (* The type of math operations *)
 and math_op =

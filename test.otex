@@ -2,7 +2,6 @@
 	//This is a comment.
 	|title THIS IS OCAMLTEX
 	|author Divyansh
-	|date 11/22/33
 	|fontsize 14
 	|font tgtermes
 	|margins 1
@@ -12,16 +11,16 @@
 Hello World.
 Hello
 
+	|m [  2 + 3 >= 4 `ne  ]
+
 /* And so is this one
 ...
 
 */
 
-2 + 3 = 5
+2 + 3 >= 5 this is some
+
 x = y = 5
-I
-i
-:inf
 
 2.3
 
@@ -29,15 +28,14 @@ fdd123
 
 
 (2 + 3 + 5) * 7
-
 |eqn (2 + 3 + 5) * 7
 
 |image -> camel.jpg, .2
 
 |list -> (a)
 	- Hi
-	- Bye
-	- le
+	- 2 + 3 = 5
+	- 2 + 3 = 5
 	|list -> 1.
 		- Hi2
 		- Bye2

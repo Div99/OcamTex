@@ -8,6 +8,9 @@ open Lexer
 
 exception SyntaxError of string
 
+(* [location_message lexbuf] is a resulting string indicating the current line
+   and position of [lexbuf]
+*)
 let location_message lexbuf =
   let start = lexeme_start_p lexbuf in
   let finish = lexeme_end_p lexbuf in
@@ -16,15 +19,23 @@ let location_message lexbuf =
     (start.pos_cnum - start.pos_bol)
     (finish.pos_cnum - finish.pos_bol)
 
+(* [syntax_error_message lexbuf] is the resulting string that indicates a syntax
+   error at the current lexbuf location
+*)
 let syntax_error_message lexbuf  =
   Printf.sprintf
     "Syntax error, %s: %s"
     (location_message lexbuf)
     (lexeme lexbuf)
 
+(* [parse_error lexbuf] raises SyntaxError with a description provided by 
+   [syntax_error_message]
+*)
 let parse_error lexbuf =
   raise (SyntaxError (syntax_error_message lexbuf))
 
+(* [unexpected_error lexbuf] raises parsing failure with location information
+*)
 let unexpected_error msg lexbuf =
   failwith ("Unexpected parsing exception: " ^ msg
             ^ "\noccurred at " ^ (location_message lexbuf))
@@ -70,6 +81,7 @@ let dir = ref ""
     print_loc loc <:> print "@\n" <:> print "%s" m <:> print "@\n"
 
   let string_mode = function
+    | A -> "Auto mode"
     | M -> "Math mode"
     | T -> "Text mode"
     | CMD (name,_) -> sprintf "Command mode (%s)" name
@@ -87,9 +99,13 @@ let dir = ref ""
                     print "@]");
     exit 1
 
+
 let error lc stk m =
     print_gen (print_err_msg_and_exit lc stk) m
 
+(* [parse_file filename] is the resulting AST document from parsing the file 
+   [filename]
+*)
 let parse_file filename =
   let inx = open_in filename in
   let lexbuf = from_channel inx in
