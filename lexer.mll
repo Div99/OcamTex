@@ -75,18 +75,6 @@
             st := rem; CMD_END
      | _ -> STRING "\n"
 
-  let get_mode2 () =
-     match !st with
-       | (m,_)::(m2,_)::_-> m2
-       | [] -> T
-
-  let check_mode letter def lexbuf=
-     match letter, get_mode2 () with
-     | "t", CMD("matrix",_) ->  "\\&"
-     | "nt", CMD("matrix",_) ->  "\\\\\t"
-     | "n" , CMD("matrix",_) ->(end_mode lexbuf; end_cmd lexbuf; def)
-     | _, _ -> def
-
   let reset_st () =
       st := []
 
@@ -286,9 +274,7 @@ and latex = parse
 and math = parse
   | "|t [" { begin_mode T lexbuf }
   | ']' {end_mode lexbuf}
-  | '\t' { STRING "\\&"}
-  | "\n\t" {STRING (check_mode "nt" "\n\\t" lexbuf)}
-  | '\n' {new_line lexbuf; STRING (check_mode "n" "\n" lexbuf)}
+  | '\n' {new_line lexbuf; STRING "\n"}
   | ':' (id as v) { VAR v }
   | '`' (id as op) { MATH_OP op }
   | "<=" { MATH_OP "leq" }
