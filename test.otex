@@ -28,7 +28,6 @@ fdd123
 
 
 (2 + 3 + 5) * 7
-|eqn (2 + 3 + 5) * 7
 
 |image -> camel.jpg, .2
 
@@ -61,6 +60,7 @@ faaa
 	bob	is	awesome
 
 |newpage
+
 
 ```
 
