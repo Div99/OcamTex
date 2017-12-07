@@ -121,7 +121,8 @@
      | (CMD _, _)::rem ->  st := rem; add_level CMD_END
      | _ -> ()
 
-  (* change_indent [curr_level is_cmd lexbuf] will update the indentation  *)
+  (* change_indent [curr_level is_cmd lexbuf] will update the stack controlling
+   * the indentation level of each nested command*)
   let change_indent curr_level is_cmd lexbuf =
     new_line lexbuf;
     let f n acc = if curr_level <= n then (end_cmd_level (); acc) else n::acc in
@@ -150,11 +151,13 @@
 
   let latex_buf = Buffer.create 128
 
+  (* end_latex [()] resets the latex_buffer. *)
   let end_latex () =
     let s = Buffer.contents latex_buf in
     Buffer.reset latex_buf;
     LATEX s
 
+  (* token_return [lexbuf] adds a new line to the lexbuf *)
   let token_return lexbuf =
     new_line lexbuf;
     STRING "\\\\\n"
