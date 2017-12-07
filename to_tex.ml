@@ -20,11 +20,11 @@ and var_to_tex v = match v with
   | "and" -> "land"
   | "union" -> "cup"
   | "intersect" -> "cap"
-  | "nats" -> "\\mathbb{N}"
-  | "reals" -> "\\mathbb{R}"
-  | "ints" -> "\\mathbb{Z}"
-  | "rats" -> "\\mathbb{Q}"
-  | "del" | "grad" -> "\\nabla"
+  | "nats" -> "mathbb{N}"
+  | "reals" -> "mathbb{R}"
+  | "ints" -> "mathbb{Z}"
+  | "rats" -> "mathbb{Q}"
+  | "del" | "grad" -> "nabla"
   | _ -> v
 
 and cmd_to_tex cmd style exprs = match cmd with
