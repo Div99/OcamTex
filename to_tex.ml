@@ -18,6 +18,7 @@ and cmd_to_tex cmd style exprs = match cmd with
   | "section" -> "\\section{" ^ fold_body exprs ^ "}\n"
   | "subsection" -> "\\subsection{" ^ fold_body exprs ^ "}\n"
   | "subsubsection" -> "\\subsubsection{" ^ fold_body exprs ^ "}\n"
+  | "equation" | "eqn" -> "$$" ^ fold_body exprs ^ "$$\n"
   | "matrix" -> matrix_to_tex style exprs
   | "table" -> table_to_tex style exprs
   | _ -> "\\" ^ cmd ^ " " ^ fold_body exprs

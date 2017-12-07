@@ -219,7 +219,7 @@ rule head = parse
 and text = parse
   | "|m [" { begin_mode M lexbuf }
   | '\n' ('\t')* "|m [" { add_level (begin_mode M lexbuf); token_return lexbuf }
-  | '\n' { new_line lexbuf; STRING "        \\\\\n"}
+  | '\n' { new_line lexbuf; STRING "       \\\\\n"}
   | "```" { latex lexbuf }
   | ('\n' ('\t')* as c) '|' (id as apply) ' '* "->" ' '* ([^'\n']+ as style)
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, Some style)) lexbuf }
@@ -246,9 +246,10 @@ and text = parse
   | ',' { COMMA }
   | '{' { LBRACE }
   | '}' { RBRACE }
+  | '\t' {STRING "\t"}
   | letter letter+ {STRING (lexeme lexbuf) }
   | float { MATH (lexeme lexbuf) }
-  | [^ '"' '$' '{' '\n' '\\' '#' '}' '%' '(' ')' '/' ',' '|' '[' ']' '.' ' ']+
+  | [^ '"' '$' '{' '\n' '\\' '#' '}' '%' '\t' '/' ',' '|' '[' ']' '.' ' ']+
       { MATH (lexeme lexbuf) }
   | (_ as c) { lex_error lexbuf "Unexpected char in text mode '%c'" c}
   | '\n' (' ')+ {lex_error lexbuf "non-tab indent"}
