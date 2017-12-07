@@ -3,6 +3,7 @@ open Ast
 %}
 
 %token <string> STRING
+%token <string> MATH
 %token HEAD, BODY
 %token EOF
 %token TEXT_BEGIN TEXT_END
@@ -20,7 +21,7 @@ open Ast
 %token <string> FONT
 %token <int> FONTSIZE
 %token <string> MATH_OP
-
+%token LBRACE, RBRACE, COMMA
 %left COMMENT
 %left LATEX
 
@@ -70,12 +71,12 @@ head_expr:
 expr:
 | TEXT_BEGIN text* TEXT_END
     { Text $2 }
-| MATH_BEGIN math* MATH_END
-    { Math $2 }
 | CMD_BEGIN cmd* CMD_END
     { Cmd ($1, $2) }
 | STRING
     { String $1 }
+| math
+    { Math $1 }
 | COMMENT
     { Comment $1 }
 | LATEX
@@ -85,12 +86,12 @@ expr:
 ;
 
 text:
-| MATH_BEGIN math* MATH_END
-    { Math $2 }
 | CMD_BEGIN cmd* CMD_END
     { Cmd ($1, $2) }
 | STRING
     { String $1 }
+| math
+    { Math $1 }
 | COMMENT
     { Comment $1 }
 | LATEX
@@ -100,33 +101,19 @@ text:
 ;
 
 math:
-| math_expr
-    { Expr $1 }
+| MATH
+    { MathStr $1 }
 | MATH_OP
     { Math_op $1 }
 
-math_expr:
-| TEXT_BEGIN text* TEXT_END
-    { Text $2 }
-| CMD_BEGIN cmd* CMD_END
-    { Cmd ($1, $2) }
-| STRING
-    { String $1 }
-| COMMENT
-    { Comment $1 }
-| LATEX
-    { String $1 }
-| VAR
-    { Var $1 }
-;
 
 cmd:
 | TEXT_BEGIN text* TEXT_END
     { Text $2 }
-| MATH_BEGIN math* MATH_END
-    { Math $2 }
 | CMD_BEGIN cmd* CMD_END
     { Cmd ($1, $2) }
+| MATH
+    { Math (MathStr $1) }
 | STRING
     { String $1 }
 | COMMENT
