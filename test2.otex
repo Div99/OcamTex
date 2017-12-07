@@ -1,0 +1,66 @@
+|HEAD
+	//This is a comment.
+	|title THIS IS OCAMLTEX
+	|author Divyansh
+	|fontsize 14
+	|font tgtermes
+	|margins 1
+
+|BODY
+
+Hello World.
+Hello
+
+/* And so is this one
+...
+
+*/
+
+2+3=5
+x = y = 5
+I
+i
+:inf
+2.3
+fdd123
+<=
+(2 + 3 + 5) * 7
+
+|image -> camel.jpg, .2
+
+|list -> (a)
+	- Hi
+	- Bye
+	- le
+	|list -> 1.
+		- Hi2
+		- Bye2
+	- Hi3
+
+dfsd
+faaa
+
+|matrix -> ||
+	A	B E
+	C	D F
+
+|newpage
+
+|section This is a section
+
+This is some text.
+
+|subsection This is a subsection
+|subsubsection This is a subsubsection
+|table -> 3
+	Hi	lol	wtf
+	bob	is	awesome
+	hey	whats	up
+
+|newpage
+
+```
+
+\LaTeX
+
+```

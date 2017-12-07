@@ -83,7 +83,7 @@ and table_to_tex style exprs =
     | None -> 1) in
   "\\begin{tabular}" ^ "{" ^ (table_gen_col columns) ^ "}" ^
   (nl_to_dash (tabs_to_and (fold_body exprs))) ^
-  "\n\\end{tabular}"
+  "\\\\\n\\hline\n\\end{tabular}"
 
 and fold_body exprs =
   List.fold_left (fun acc expr -> acc ^ expr_to_tex expr) "" exprs
