@@ -7,6 +7,7 @@
   open Lexing
 
   type mode =
+    | A
     | M
     | T
     | CMD of string * (string option)
@@ -48,13 +49,14 @@
   let get_mode () =
       match !st with
         | (m,_)::_ -> m
-        | [] -> T
+        | [] -> A
 
   (* begin_mode [m lexbuf] appends the mode to the stack [st] and matches [m]
    * to the proper parser token. *)
   let begin_mode m lexbuf =
       st := (m , loc lexbuf) :: !st;
       match m with
+        | A -> lex_error lexbuf !st "not valid start of auto mode"
         | M -> MATH_BEGIN
         | T -> TEXT_BEGIN
         | CMD (cmd, style) ->
@@ -69,6 +71,7 @@
         | (m,_)::rem ->
             st := rem;
             ( match m with
+              | A -> lex_error lexbuf !st "not valid end of auto mode"
               | M -> MATH_END
               | T -> TEXT_END
               | CMD _ -> CMD_END )
@@ -224,9 +227,11 @@ rule head = parse
   | '\n' (' ')+ {lex_error lexbuf "non-tab indent"}
   | eof { lex_error lexbuf "no body given" }
 
-and text = parse
+and auto = parse
   | "|m [" { begin_mode M lexbuf }
   | '\n' ('\t')* "|m [" { add_level (begin_mode M lexbuf); token_return lexbuf }
+  | "|t [" { begin_mode M lexbuf }
+  | '\n' ('\t')* "|t [" { add_level (begin_mode T lexbuf); token_return lexbuf }
   | '\n' { new_line lexbuf; STRING "       \\\\\n"}
   | "```" { latex lexbuf }
   | ('\n' ('\t')* as c) '|' (id as apply) ' '* "->" ' '* ([^'\n']+ as style)
@@ -245,11 +250,15 @@ and text = parse
       { lex_error lexbuf "invalid escaping in text mode" }
   | '(' { STRING "(" }
   | ')' { STRING ")" }
-  | '.' {STRING "." }
+  | '.' { STRING "." }
   | ' ' { STRING " " }
   | 'I' {STRING "I" }
+  | 'A' {STRING "A" }
   | ':' (id as v) { VAR v }
   | '`' (op as n) { MATH_OP n }
+  | "<=" { MATH_OP "leq" }
+  | ">=" { MATH_OP "geq" }
+  | "!=" { MATH_OP "ne" }
   | "lim" { MATH_OP "limit" }
   | ',' { COMMA }
   | '{' { LBRACE }
@@ -263,6 +272,31 @@ and text = parse
   | '\n' (' ')+ {lex_error lexbuf "non-tab indent"}
   | eof { if top_level () then EOF else
           lex_error lexbuf "unexpected end of file in text mode" }
+
+ and text = parse
+   | "|m [" { begin_mode M lexbuf }
+   | '\n' ('\t')* "|m [" { add_level (begin_mode M lexbuf); token_return lexbuf }
+   | '\n' { new_line lexbuf; STRING "        \\\\\n"}
+   | ('\n' ('\t')* as c) '|' (id as apply) ' '* "->" ' '* ([^'\n']+ as style)
+       { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, Some style)) lexbuf }
+   | ('\n' ('\t')* as c) '|' (id as apply)
+       { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, None)) lexbuf}
+   | "/*" { start_comment (); comment lexbuf }
+   | "//" ([^'\n' '\r']* as c)
+       { start_comment (); Buffer.add_string comment_buf c;
+         end_comment () }
+   | "```" { latex lexbuf }
+   | '#' { STRING "\\#" }
+   | '_' { STRING "\\_" }
+   | '\\' [^ '\\' '{' '}' '$' '"' '&' ' ']
+       { lex_error lexbuf "invalid escaping in text mode" }
+   | '(' { STRING "(" }
+   | [^ '"' '$' '{' '<' '\n' '\\' '#' '_' '^' '}' '%' '(' '/' '|' '[' ']']+
+       { STRING(lexeme lexbuf) }
+   | (_ as c) { lex_error lexbuf "Unexpected char in text mode '%c'" c}
+   | '\n' (' ')+ {lex_error lexbuf "non-tab indent"}
+   | eof { if top_level () then EOF else
+           lex_error lexbuf "unexpected end of file in text mode" }
 
 and comment = parse
   | "*/" { try end_comment () with Exit -> comment lexbuf }
@@ -281,6 +315,11 @@ and latex = parse
 
 and math = parse
   | "|t [" { begin_mode T lexbuf }
+  | '\n' ('\t')* "|t [" { add_level (begin_mode T lexbuf); token_return lexbuf }
+  | ('\n' ('\t')* as c) '|' (id as apply) ' '* "->" ' '* ([^'\n']+ as style)
+       { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, Some style)) lexbuf }
+  | ('\n' ('\t')* as c) '|' (id as apply)
+       { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, None)) lexbuf}
   | ']' {end_mode lexbuf}
   | '\n' {new_line lexbuf; STRING "\n"}
   | ':' (id as v) { VAR v }
@@ -290,8 +329,7 @@ and math = parse
   | "!=" { MATH_OP "ne" }
   | '%' { STRING "\\%" }
   | ' ' { STRING " " }
-  | ':' (['a'-'z' 'A'-'Z']+ as c) {STRING ("\\" ^ c)}
-  | '`' {lex_error lexbuf "invalid char in math mode" '`'}
+  | '`' (op as n) { MATH_OP n }
   | _  { STRING (lexeme lexbuf) }
   | "```" { latex lexbuf }
   | '\n' (' ')+ {lex_error lexbuf "non-tab indent"}
@@ -302,16 +340,16 @@ and command = parse
   | "```" { latex lexbuf }
   | '\n' ('\t')* "```" { new_line lexbuf; add_new_line (); latex lexbuf }
   | ('\n' ('\t')* as c) "|m" { change_indent (curr_level c) false lexbuf;
-                               add_new_line (); begin_mode M lexbuf }
+                               add_level (begin_mode M lexbuf); token_return lexbuf }
   | "|t [" { begin_mode T lexbuf }
   | ('\n' ('\t')* as c) "|t" { change_indent (curr_level c) false lexbuf;
-                               add_new_line (); begin_mode T lexbuf }
+                               add_level (begin_mode M lexbuf); token_return lexbuf }
   | ']' {end_mode lexbuf}
   | ('\n' ('\t')* as c) '-'
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD ("item", None)) lexbuf}
   | '\n' ('\t')*  "|end" { new_line lexbuf; add_new_line (); end_cmd lexbuf }
   | "|END" { end_cmd lexbuf }
-  | ('\n' ('\t')* as c) '|' (id as apply) ' '* "->" ' '* ([^'\n']+ as style)
+  | ('\n' ('\t')* as c) '|' (id as apply) ' '* "->" ' '* ([^'\n' '/']+ as style)
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, Some style)) lexbuf }
   | ('\n' ('\t')* as c) '|' (id as apply)
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, None)) lexbuf}
@@ -343,6 +381,7 @@ and command = parse
     if is_head () then head lexbuf
     else if List.length !levels > 0 then decr_levels lexbuf
     else match get_mode () with
+      | A -> auto lexbuf
       | M -> math lexbuf
       | T -> text lexbuf
       | CMD _ -> command lexbuf

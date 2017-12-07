@@ -3,10 +3,14 @@ open To_tex
 open Ast
 open Str
 
+(* [strip s] removes all the newlines within a string [s]. *)
 let strip = global_replace (regexp "\n") ""
 
+(* [equal s1 s2] asserts equality between two strings that have their newlines
+ * removed. *)
 let equal s1 s2 = assert_equal (strip s1) (strip s2)
 
+(* some small test cases to test correctness of to_tex *)
 let to_tex = [
   "string" >:: (fun _ -> equal "string" (expr_to_tex (String "string")));
   "text" >:: (fun _ -> equal "text" (expr_to_tex (Text [String "text"])));

@@ -3,7 +3,7 @@ open Ast
 let rec expr_to_tex = function
   | String s ->  s
   | Text exprs -> fold_body exprs
-  | Math s -> "$" ^ (math_to_tex s) ^ "$"
+  | Math exprs -> "$" ^ fold_math exprs ^ "$"
   | Comment s -> "\\begin{comment}\n" ^ s ^ "\n\\end{comment}"
   | Var s -> "\\" ^ var_to_tex s
   | Cmd ((cmd, style), exprs) -> cmd_to_tex cmd style exprs
@@ -46,6 +46,7 @@ and cmd_to_tex cmd style exprs = match cmd with
 and math_to_tex = function
   | Math_op s -> "\\" ^ s
   | MathStr s -> s
+  | Expr ex -> expr_to_tex ex
 
 (* list_to_tex [style exprs] takes a style of lists and returns a Latex list
  * using that style based on the items within [exprs] *)
@@ -123,6 +124,9 @@ and fold_body exprs =
 (* fold_head [exprs] applies head_to_tex to each element in list [exprs] *)
 and fold_head exprs =
   List.fold_left (fun acc expr -> acc ^ head_to_tex expr) "" exprs
+
+and fold_math exprs =
+   List.fold_left (fun acc expr -> acc ^ math_to_tex expr) "" exprs
 
 and head_to_tex = function
   | Title s -> "\\title{" ^ s ^ "}\n"
