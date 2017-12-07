@@ -21,9 +21,6 @@ open Ast
 %token <string> FONT
 %token <int> FONTSIZE
 %token <string> MATH_OP
-%token LBRACE, RBRACE, COMMA
-%left COMMENT
-%left LATEX
 
 %start <Ast.doc> doc
 

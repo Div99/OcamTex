@@ -13,7 +13,7 @@ let basename = let lst = Str.split (Str.regexp ".otex") filename in
   if List.length lst > 1 then failwith "Bad .otex target"
   else (List.hd lst)
 
-let output_file = convert_file filename
+let _ = convert_file filename
 
 let _ = print_string ("Converted to " ^ basename ^ ".tex\n")
 
