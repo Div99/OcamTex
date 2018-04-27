@@ -8,7 +8,7 @@ Creating a more intuitive TeX language and raising the current standards.
 1. Install required packages for latex compilation - this is required even if just running the precompiled executable.
     - For Mac: Install [MacTex](https://www.tug.org/mactex)
     - For Linux: Install Tex Live, do `sudo apt-get install texlive-latex-recommended`
-    - For Windows Install [MikTex](https://miktex.org/download) or [Tex Live](http://www.tug.org/texlive/acquire-netinstall.html)
+    - For Windows: Install [MikTex](https://miktex.org/download) or [Tex Live](http://www.tug.org/texlive/acquire-netinstall.html)
     
 1. Run the executable to get corresponding `.tex` and `.pdf` outputs.
 
