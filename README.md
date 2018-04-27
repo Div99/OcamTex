@@ -23,7 +23,7 @@ Creating a more intuitive TeX language and raising the current standards.
 1. `make tex` will build the `main.byte` and attempts to run it on the default file `test.otex`.
 1. `make clean` will delete generated files produced by the make and build systems, as well as any `.aux`, `.log`, `.tex`, and `.pdf` files.
 
-Sublime Syntax plugin: https://github.com/Div99/OCamTeX
+Sublime Syntax plugin: https://github.com/Div99/OCamTeX-Sublime-plugin
 
 ## OCamTeX Syntax:
 
