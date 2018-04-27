@@ -2,9 +2,9 @@ open Ast
 
 let rec expr_to_tex = function
   | String s ->  s
-  | Text exprs -> "\\text{" ^ fold_body exprs ^ "}"
+  | Text exprs -> fold_body exprs
   | Math exprs -> "$" ^ fold_math exprs ^ "$"
-  | Comment s -> "\\begin{comment}\n" ^ s ^ "\n\\end{comment}"
+  | Comment s -> "\\begin{comment}\n" ^ s ^ "\n\\end{comment}\n"
   | Var s -> "\\" ^ var_to_tex s
   | Cmd ((cmd, style), exprs) -> cmd_to_tex cmd style exprs
 
@@ -33,10 +33,11 @@ and var_to_tex v = match v with
 and cmd_to_tex cmd style exprs = match cmd with
   | "list" -> list_to_tex style exprs
   | "image" -> image_to_tex style
+  | "framebox" -> "\\framebox{" ^ fold_body exprs ^ "}\n"
   | "section" -> "\\section{" ^ fold_body exprs ^ "}\n"
   | "subsection" -> "\\subsection{" ^ fold_body exprs ^ "}\n"
   | "subsubsection" -> "\\subsubsection{" ^ fold_body exprs ^ "}\n"
-  | "equation" | "eqn" -> "$$" ^ fold_body exprs ^ "$$\n"
+  | "equation" | "eqn" -> eqn_to_tex exprs
   | "matrix" -> matrix_to_tex style exprs
   | "table" -> table_to_tex style exprs
   | _ -> "\\" ^ cmd ^ " " ^ fold_body exprs
@@ -46,6 +47,7 @@ and cmd_to_tex cmd style exprs = match cmd with
 and math_to_tex = function
   | Math_op s -> "\\" ^ s
   | MathStr s -> s
+  | Expr (Text exprs) -> "\\text{" ^ fold_body exprs ^ "}"
   | Expr ex -> expr_to_tex ex
 
 (* list_to_tex [style exprs] takes a style of lists and returns a Latex list
@@ -62,6 +64,11 @@ and list_to_tex style exprs =
 
 (* matrix_to_tex [style exprs] takes a style for matrices and returns a Latex
  * matrix using that style based on the items within [exprs] *)
+and eqn_to_tex exprs =
+  "$$" ^ remove_dollars (fold_body exprs) ^ " $$"
+
+(* matrix_to_tex [style exprs] takes a style for matrices and returns a Latex
+ * matrix using that style based on the items within [exprs] *)
 and matrix_to_tex style exprs =
   let sty = match style with
     | None -> "matrix"
@@ -69,10 +76,10 @@ and matrix_to_tex style exprs =
     | Some "[]" -> "bmatrix"
     | Some "{}" -> "Bmatrix"
     | Some "||" -> "vmatrix"
-    | Some "||||" -> "Vmatrix"
+    |  Some "||||" | Some "||\t||" -> "Vmatrix"
     | Some _ -> "matrix" in
   "$\\begin{" ^ sty ^ "}" ^ nlt_to_slash (tabs_to_and (fold_body exprs)) ^
-  "\\end{" ^ sty ^ "}$"
+  "\n\\end{" ^ sty ^ "}$"
 
 (* image_to_tex [style] takes a style of representing image path and size of
  * image and returns the Latex snippet for inserting an image *)
@@ -97,19 +104,25 @@ and tabs_to_and = Str.global_replace (Str.regexp "\t") " & "
  * characters *)
 and nlt_to_slash s = Str.replace_first (Str.regexp "\\\\\\\\\n")
 "\n"
-(Str.global_replace (Str.regexp "\n") "\\\\\\\n\n" s)
+(Str.global_replace (Str.regexp "\n") "\n\n" s)
+
+(* [remove_dollars s] replaces '$' in a string [str] with the '' *)
+and remove_dollars s =
+(Str.global_replace (Str.regexp "\\$") "" s)
 
 (* nl_to_dash [str] replaces '\n' in a string [str] with the '\\', '\hline', \n'
  * characters *)
 and nl_to_dash s = Str.replace_first (Str.regexp "\\\\\\\\\n")
 "\n"
-(Str.global_replace (Str.regexp "\n") "\\\\\\\n\\hline\n" s)
+(Str.global_replace (Str.regexp "\n") "\n\\hline\n" s)
 
 (* table_to_tex [style exprs] applies a formmating [style] and returns a Latex
  * snippet that would produce a table containing [exprs] *)
 and table_to_tex style exprs =
-  let columns = (match style with
-    | Some style -> (match int_of_string style with
+  let columns =
+   (match style with
+    | Some style ->
+     (match int_of_string style with
       | n -> n
       | exception e -> 1)
     | None -> 1) in

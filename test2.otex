@@ -20,11 +20,13 @@ Hello
 x = y = 5
 I
 i
-:inf
+
+2 + 3 = :inf
+
 2.3
 fdd123
 <=
-(2 + 3 + 5) * 7
+|eqn (2 + 3 + 5) * 7
 
 |image -> camel.jpg, .2
 

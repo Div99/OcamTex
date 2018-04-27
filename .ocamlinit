@@ -2,6 +2,6 @@
 #require "extlib";;
 #require "str"
 #load_rec "parse.cmo";;
-#trace Lexer.incr_levels;;
+#trace Lexer.add_level;;
 #trace Lexer.decr_levels;;
 #trace Lexer.curr_level;;

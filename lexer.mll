@@ -49,9 +49,19 @@
     | h::t -> levels := t; h
 
   (* get_mode () returns the current mode based on the stack [st]. If the stack
-   * is empty, returns T for text mode. *)
+   * is empty, returns A for text mode. *)
   let get_mode () =
       match !st with
+        | (m,_)::_ -> m
+        | [] -> A
+
+  (* get_mode2 () the first mode in the stack same as [st] but with CMD mode filtered.
+  If the stack is empty, returns A for text mode. *)
+  let get_mode2 () =
+      let f (m,_) = match m with
+                    | CMD _ -> false
+                    | _ -> true in
+      match List.filter f !st with
         | (m,_)::_ -> m
         | [] -> A
 
@@ -89,14 +99,6 @@
             st := rem; CMD_END
      | _ -> lex_error lexbuf !st "no cmd to end"
 
-  (* end_cmd_newline () matches the command on the top of the stack [st]
-   * with the proper command and returns the correct ending token for the mode  or
-   * returns a new line *)
-  let end_cmd_newline () =
-    match !st with
-     | (CMD _, _)::rem ->
-            st := rem; CMD_END
-     | _ -> STRING "\n"
 
   (* reset_st [()] resets state [st]*)
   let reset_st () =  st := []
@@ -132,14 +134,13 @@
   (* change_indent [curr_level is_cmd lexbuf] will update the stack controlling
    * the indentation level of each nested command*)
   let change_indent curr_level is_cmd lexbuf =
-    new_line lexbuf;
     let f n acc = if curr_level <= n then (end_cmd_level (); acc) else n::acc in
-    if is_cmd then
-        (if !indent_st = [] || curr_level > List.hd !indent_st then
-        indent_st := curr_level::(!indent_st)
-    else (indent_st := List.fold_right f !indent_st [];
-        indent_st := curr_level::(!indent_st)))
-        else indent_st := List.fold_right f !indent_st []
+    if is_cmd then (new_line lexbuf;
+        if !indent_st = [] || curr_level > List.hd !indent_st then
+          indent_st := curr_level::(!indent_st)
+        else (indent_st := List.fold_right f !indent_st [];
+          indent_st := curr_level::(!indent_st)))
+    else  indent_st := List.fold_right f !indent_st []
 
   let comment_buf = Buffer.create 128
 
@@ -169,8 +170,8 @@
 
   (* token_return [lexbuf] adds a new line to the lexbuf *)
   let token_return lexbuf =
-    new_line lexbuf;
-    STRING "\\\\\n"
+    new_line lexbuf; add_level (STRING "\\\\\n")
+
 
   let head = ref true
 
@@ -233,33 +234,55 @@ rule head = parse
   | eof { lex_error lexbuf "no body given" }
 
 and auto = parse
+  | ('\n' ('\t')* as c) '-'
+      { change_indent (curr_level c) true lexbuf; begin_mode (CMD ("item", None)) lexbuf}
+  | '\n' ('\t')*  "|end" { token_return lexbuf; end_cmd lexbuf }
+  | "|end" { end_cmd lexbuf }
   | "|m [" { begin_mode M lexbuf }
-  | '\n' ('\t')* "|m [" { add_level (begin_mode M lexbuf); token_return lexbuf }
-  | "|t [" { begin_mode M lexbuf }
-  | '\n' ('\t')* "|t [" { add_level (begin_mode T lexbuf); token_return lexbuf }
-  | '\n' { new_line lexbuf; STRING "\\\\\n"}
+  | ('\n' ('\t')* as c) "|m [" { change_indent (curr_level c) false lexbuf; token_return lexbuf;
+                                 add_level (begin_mode M lexbuf); STRING "" }
+  | "|t [" { begin_mode T lexbuf }
+  | ('\n' ('\t')* as c) "|t [" { change_indent (curr_level c) false lexbuf; token_return lexbuf;
+                                 add_level (begin_mode T lexbuf); STRING ""  }
   | "```" { latex lexbuf }
+
   | ('\n' ('\t')* as c) '|' (id as apply) ' '* "->" ' '* ([^'\n' '/']+ as style)
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, Some style)) lexbuf }
   | ('\n' ('\t')* as c) '|' (id as apply)
       { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, None)) lexbuf}
+  | ('\n' ('\t')* as c)  { change_indent (curr_level c) false lexbuf;
+                           token_return lexbuf; STRING "" }
   | "/*" { start_comment (); comment lexbuf }
   | "//" ([^'\n' '\r']* as c)
       { start_comment (); Buffer.add_string comment_buf c;
         end_comment () }
+  | '\n' ('\t')* "/*" { new_line lexbuf; start_comment (); add_level (STRING "\n");
+                         add_level (comment lexbuf); STRING "" }
+  | '\n' ('\t')* "//" ([^'\n' '\r']* as c)
+      { new_line lexbuf; start_comment (); Buffer.add_string comment_buf c;
+        add_level (STRING "\n"); add_level (end_comment ()); STRING "" }
   | ':' (id as v) { VAR v }
   | '#' { STRING "\\#" }
-  | '_' { STRING "\\_" }
-  | '%' { STRING "\\%" }
+  | "\\_" { STRING "\\_" }
+  | "\\%" { STRING "\\%" }
   | '\\' [^ '\\' '{' '}' '$' '"' '&' ' ']
-      { lex_error lexbuf "invalid escaping in text mode" }
+      { lex_error lexbuf "invalid escaping in auto mode" }
   | '(' { STRING "(" }
   | ')' { STRING ")" }
   | '.' { STRING "." }
   | ' ' { STRING " " }
-  | 'I' {STRING "I" }
-  | 'A' {STRING "A" }
-  | ':' (id as v) { VAR v }
+  | '.' white? ('A'|'I') ' ' { STRING (lexeme lexbuf) }
+  | ('\n' ('\t')* as c) "A" ' '
+            { change_indent (curr_level c) false lexbuf;
+              token_return lexbuf; add_level (STRING "A "); STRING "" }
+  | ('\n' ('\t')* as c) "I" ' '
+            { change_indent (curr_level c) false lexbuf;
+              token_return lexbuf; add_level (STRING "I "); STRING "" }
+  | 'a' {STRING "a" }
+  | "1st" { MATH "1^{st}" }
+  | "2nd" { MATH "2^{nd}" }
+  | "3rd" { MATH "3^{rd}" }
+  | (digit as n) "th" { MATH ( Char.escaped n ^ "^{th}") }
   | '`' (op as n) { MATH_OP n }
   | "<=" { MATH_OP "leq" }
   | ">=" { MATH_OP "geq" }
@@ -267,36 +290,51 @@ and auto = parse
   | "lim" { MATH_OP "limit" }
   | '\t' {STRING "\t"}
   | '/' { STRING "/" }
-  | letter letter+ {STRING (lexeme lexbuf) }
+  | ',' { STRING "," }
+  | '%' { MATH "\\%" }
+  | ''' letter+ { STRING (lexeme lexbuf) }
+  | '('? letter letter+ (')'|';'|':')? { STRING (lexeme lexbuf) }
   | float { MATH (lexeme lexbuf) }
-  | [^ '"' '$' '{' '\n' '\\' '#' '}' '%' '\t' '/' ',' '|' '[' ']' '.' ' ']+
+  | [^ ''' '$' '\n' '\\' '#' '%' '\t' '/' ',' '|' '[' ']' '.' ' ']+
       { MATH (lexeme lexbuf) }
-  | (_ as c) { lex_error lexbuf "Unexpected char in text mode '%c'" c}
+  | (_ as c) { lex_error lexbuf "Unexpected char in auto mode '%c'" c}
   | '\n' (' ')+ {lex_error lexbuf "non-tab indent"}
   | eof { if top_level () then EOF else
-          lex_error lexbuf "unexpected end of file in text mode" }
+          lex_error lexbuf "unexpected end of file in auto mode" }
 
  and text = parse
-   | "|m [" { begin_mode M lexbuf }
-   | '\n' ('\t')* "|m [" { add_level (begin_mode M lexbuf); token_return lexbuf }
-   | '\n' { new_line lexbuf; STRING "\\\\\n"}
-   | ('\n' ('\t')* as c) '|' (id as apply) ' '* "->" ' '* ([^'\n' '/']+ as style)
-       { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, Some style)) lexbuf }
-   | ('\n' ('\t')* as c) '|' (id as apply)
-       { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, None)) lexbuf}
-   | "/*" { start_comment (); comment lexbuf }
-   | "//" ([^'\n' '\r']* as c)
-       { start_comment (); Buffer.add_string comment_buf c;
-         end_comment () }
-   | "```" { latex lexbuf }
+  | ('\n' ('\t')* as c) '-'
+      { change_indent (curr_level c) true lexbuf; begin_mode (CMD ("item", None)) lexbuf}
+  | '\n' ('\t')*  "|end" { token_return lexbuf; end_cmd lexbuf }
+  | "|end" { end_cmd lexbuf }
+  | "|m [" { begin_mode M lexbuf }
+  | ('\n' ('\t')* as c) "|m [" { change_indent (curr_level c) false lexbuf; token_return lexbuf;
+                                 add_level (begin_mode M lexbuf); STRING "" }
+  | "```" { latex lexbuf }
+  | ('\n' ('\t')* as c) '|' (id as apply) ' '* "->" ' '* ([^'\n' '/']+ as style)
+      { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, Some style)) lexbuf }
+  | ('\n' ('\t')* as c) '|' (id as apply)
+      { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, None)) lexbuf}
+  | ('\n' ('\t')* as c)  { change_indent (curr_level c) false lexbuf;
+                           token_return lexbuf; STRING "" }
+  | "/*" { start_comment (); comment lexbuf }
+  | "//" ([^'\n' '\r']* as c)
+      { start_comment (); Buffer.add_string comment_buf c;
+        end_comment () }
+  | '\n' ('\t')* "/*" { new_line lexbuf; start_comment (); add_level (STRING "\n");
+                         add_level (comment lexbuf); STRING "" }
+  | '\n' ('\t')* "//" ([^'\n' '\r']* as c)
+      { new_line lexbuf; start_comment (); Buffer.add_string comment_buf c;
+        add_level (STRING "\n"); add_level (end_comment ()); STRING "" }
    | '#' { STRING "\\#" }
    | '_' { STRING "\\_" }
+   | '%' { STRING "\\%" }
    | '\\' [^ '\\' '{' '}' '$' '"' '&' ' ']
        { lex_error lexbuf "invalid escaping in text mode" }
    | '(' { STRING "(" }
    | '/' { STRING "/" }
    | ']' {end_mode lexbuf}
-   | [^ '"' '$' '{' '<' '\n' '\\' '#' '_' '^' '}' '%' '(' '/' '|' '[' ']']+
+   | [^ '$' '{' '<' '\n' '\\' '#' '_' '^' '}' '%' '(' '/' '|' '[' ']']+
        { STRING(lexeme lexbuf) }
    | (_ as c) { lex_error lexbuf "Unexpected char in text mode '%c'" c}
    | '\n' (' ')+ {lex_error lexbuf "non-tab indent"}
@@ -320,7 +358,9 @@ and latex = parse
 
 and math = parse
   | "|t [" { begin_mode T lexbuf }
-  | '\n' ('\t')* "|t [" { add_level (begin_mode T lexbuf); token_return lexbuf }
+  | '\n' ('\t')* "|t [" { token_return lexbuf; add_level (begin_mode T lexbuf); STRING "" }
+  | '\n' ('\t')*  "|end" { token_return lexbuf; end_cmd lexbuf }
+  | "|end" { end_cmd lexbuf }
   | ('\n' ('\t')* as c) '|' (id as apply) ' '* "->" ' '* ([^'\n' '/']+ as style)
        { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, Some style)) lexbuf }
   | ('\n' ('\t')* as c) '|' (id as apply)
@@ -341,53 +381,15 @@ and math = parse
   | eof { lex_error lexbuf "unexpected end of file in math mode" }
 
 and command = parse
-  | "|m [" { begin_mode M lexbuf }
-  | "```" { latex lexbuf }
-  | '\n' ('\t')* "```" { new_line lexbuf; add_new_line (); latex lexbuf }
-  | ('\n' ('\t')* as c) "|m" { change_indent (curr_level c) false lexbuf;
-                               add_level (begin_mode M lexbuf); token_return lexbuf }
-  | "|t [" { begin_mode T lexbuf }
-  | ('\n' ('\t')* as c) "|t" { change_indent (curr_level c) false lexbuf;
-                               add_level (begin_mode M lexbuf); token_return lexbuf }
-  | ']' {end_mode lexbuf}
-  | ('\n' ('\t')* as c) '-'
-      { change_indent (curr_level c) true lexbuf; begin_mode (CMD ("item", None)) lexbuf}
-  | '\n' ('\t')*  "|end" { new_line lexbuf; add_new_line (); end_cmd lexbuf }
-  | "|END" { end_cmd lexbuf }
-  | ('\n' ('\t')* as c) '|' (id as apply) ' '* "->" ' '* ([^'\n' '/']+ as style)
-      { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, Some style)) lexbuf }
-  | ('\n' ('\t')* as c) '|' (id as apply)
-      { change_indent (curr_level c) true lexbuf; begin_mode (CMD (apply, None)) lexbuf}
-  | ('\n' ('\t')* as c)  { change_indent (curr_level c) false lexbuf;
-                           add_new_line (); (STRING "") }
-  | ':' (id as v) { VAR v }
-  | "/*" { start_comment (); comment lexbuf }
-  | "//" ([^'\n' '\r']* as c)
-      { start_comment (); Buffer.add_string comment_buf c;
-        end_comment () }
-  | '\n' ('\t')* "/*" { new_line lexbuf; start_comment (); comment lexbuf }
-  | '\n' ('\t')* "//" ([^'\n' '\r']* as c)
-      { new_line lexbuf; start_comment (); Buffer.add_string comment_buf c;
-        end_comment () }
-  | '#' { STRING "\\#" }
-  | '_' { STRING "\\_" }
-  | '%' { STRING "\\%" }
-  | '\\' [^ '\\' '{' '}' '$' '"' '&' ' ']
-      { lex_error lexbuf "invalid escaping in command mode" }
-  | '(' { STRING "(" }
-  | [^ '"' '$' '{' '<' '\n' '\\' '#' '_' '^' '}' '%' '(' '/' '|' '[' ']' '-']+
-      { STRING(lexeme lexbuf) }
-  | (_ as c) { lex_error lexbuf "Unexpected char in cmd mode '%c'" c}
-  | '\n' (' ')+ {lex_error lexbuf "non-tab indent"}
-  | eof { lex_error lexbuf "unexpected end of file in command mode" }
+  | _  { lex_error lexbuf "ended in command mode" }
 
 {
   let token lexbuf =
     if is_head () then head lexbuf
-    else if List.length !levels > 0 then decr_levels lexbuf
-    else match get_mode () with
+    else if !levels <> [] then decr_levels lexbuf
+    else match get_mode2 () with
       | A -> auto lexbuf
       | M -> math lexbuf
       | T -> text lexbuf
-      | CMD _ -> command lexbuf
+      | CMD _ -> auto lexbuf
 }

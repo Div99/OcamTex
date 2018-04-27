@@ -5,49 +5,55 @@
 	|fontsize 14
 	|font tgtermes
 	|margins 1
-
 |BODY
 
 Hello World.
 Hello
 
-	|m [  2 + 3 >= 4 `ne  ]
+2 + 3 = 5
+
+|equation 2_3^5 != 5
 
 /* And so is this one
 ...
 
-*/
+*/ fsdlfsjd
+|eqn x = y = 5
 
-2 + 3 >= 5 this is some
+:sigma
+:inf
 
-x = y = 5
-
-2.3
+2.334
 
 fdd123
 
 
-(2 + 3 + 5) * 7
+ad\_bd
+
+(2 + 3 - 5) * 7
 
 |image -> camel.jpg, .2
 
-|list -> (a)
+|list -> 1.)
 	- Hi
-	- 2 + 3 = 5
-	- 2 + 3 = 5
+	- bye
+	|item 2 + 3 = 5
 	|list -> 1.
 		- Hi2
 		- Bye2
-	- Hi3
+	- Hi4324v
+
 
 dfsd
 faaa
 
-|matrix -> || //comments
-	A	B E
-	C	D F
 
-|newpage hjghjgg
+|matrix -> []
+	A	B	E
+	C	D	F
+
+
+|section This is a section
 
 |section This is a section
 
@@ -55,11 +61,15 @@ faaa
 
 |subsection This is a subsection
 |subsubsection This is a subsubsection
+
 |table -> 3
 	Hi	lol	wtf
+	Hi	lol	great
 	bob	is	awesome
 
 |newpage
+|end
+
 
 
 ```
