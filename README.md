@@ -10,6 +10,7 @@ We want to make writing LaTeX code a pleasant task and eliminate the need to wor
    * **Indentation Styling**: Use indentation for nesting commands.
    * **Preserves newline**: Just press "enter" to create new-lines, instead of ugly "\\\\" syntax.
    * **[SublimeText Plugin](https://github.com/Div99/OCamTeX_sublime)**: Provides syntax higlighting, auto-compilation commands.
+   * **Legacy latex mode**: Include latex code, by switching modes. (Described below) 
 
 ## Pre-requisites
 
