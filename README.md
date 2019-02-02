@@ -20,8 +20,12 @@ We want to make writing LaTeX code a pleasant task and eliminate the need to wor
    
 2. Install **Ocaml** per instructions on [this page](https://opam.ocaml.org/doc/Install.html).
 3. Install required Opam dependencies - we use extlib for file IO.
+
     `opam install extlib ocamllex menhir`
 
+## Installation
+
+Clone the repo, compile `main.byte`, and place it in system's path.
 
 ## Compilation
 
