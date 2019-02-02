@@ -1,32 +1,45 @@
 # OCamTex
-Creating a more intuitive TeX language and raising the current standards.
+Creating a more intuitive LaTeX language and raising it to modern standards. This project is geared toward simplicity to make editing in LaTex faster and less cubersome, especially for math-related writing for research papers or HWs. 
 
+We want to make writing LaTeX code a pleasant task and eliminate the need to work with LaTeX's obscure syntax.
 ![Ocamtex](ocamtex.png)
 
-## Usage
+## Features
+   * Inituitive and efficient user interface, designed for **fast editing**.
+   * **Automatic Math mode**: Smart interpreter automatically puts math-like content in Math mode. [Eliminates '$']
+   * **Indentation Styling**: Use indentation for nesting commands.
+   * **Preserves newline**: Just press "enter" to create new-lines, instead of ugly "\\\\" syntax.
+   * **[SublimeText Plugin](https://github.com/Div99/OCamTeX_sublime)**: Provides syntax higlighting, auto-compilation commands.
+
+## Pre-requisites
 
 1. Install required packages for latex compilation - this is required even if just running the precompiled executable.
     - For Mac: Install [MacTex](https://www.tug.org/mactex)
     - For Linux: Install Tex Live, do `sudo apt-get install texlive-latex-recommended`
     - For Windows: Install [MikTex](https://miktex.org/download) or [Tex Live](http://www.tug.org/texlive/acquire-netinstall.html)
-    
-1. Run the executable to get corresponding `.tex` and `.pdf` outputs.
+   
+2. Install **Ocaml** per instructions on [this page](https://opam.ocaml.org/doc/Install.html).
+3. Install required Opam dependencies - we use extlib for file IO.
+    `opam install extlib ocamllex menhir`
 
-    `./main.byte [filename].otex`
 
 ## Compilation
 
-1. Install Ocaml per instructions on [this page](https://opam.ocaml.org/doc/Install.html).
-1. Install required Opam dependencies - we use extlib for file IO.
-
-    `opam install extlib ocamllex menhir`
 1. `make` or `make test` will run the oUnit test suite.
 1. `make main` will build the `main.byte` executable.
 1. `make tex` will build the `main.byte` and attempts to run it on the default file `test.otex`.
 1. `make clean` will delete generated files produced by the make and build systems, as well as any `.aux`, `.log`, `.tex`, and `.pdf` files.
 
-Sublime Syntax plugin: https://github.com/Div99/OCamTeX-Sublime-plugin
+## Usage
 
+Run the executable to get corresponding `.tex` and `.pdf` outputs.
+
+```./main.byte [filename].otex```
+    
+**OR**
+
+Use SublimeText Plugin to automatically build *.otex files using its build system.
+  
 ## OCamTeX Syntax:
 
 ### Head section and document formatting
